@@ -1,0 +1,10 @@
+{
+  "name": "scraping_sample",
+  "version": "0.0.1",
+  "description": "scraping sample",
+  "author": "Rei Matsushita",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio-httpcli":"*"
+  }
+}
