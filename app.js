@@ -1,27 +1,36 @@
-var http = require('http'),
-    client = require('cheerio-httpcli'),
-    hit_chart = [],
-    decklists = [],
-    deckdetails = [],
-    usecards = [],
-    decktypecount = {};
+var client = require('cheerio-httpcli'),
+    mocky = require('mocky'),
+    storage = {
+        decklists: [],
+        deckdetails: [],
+        usecards: [],
+        __usecards: [],
+        decktypecount: {}
+    };
 
-updatePairingHareruya();
-updateHitChartHareruya();
 updateDecklistSCG();
 
-// setInterval(updatePairingHareruya, 1 * 60 * 60 * 1000);
 // setInterval(updateHitChartHareruya, 1 * 60 * 60 * 1000);
 
-http.createServer(function(req, res) {
-    res.writeHead(200, {'Content-Type': 'application/json'});
+mocky.createServer([
+    makeAPIConfig('decklists'),
+    makeAPIConfig('deckdetails'),
+    makeAPIConfig('usecards'),
+    makeAPIConfig('decktypecount'),
+]).listen(3000);
 
-    for (deck in decklists) {
-        res.write(JSON.stringify(decklists[deck]));
-    }
-
-    res.end();
-}).listen(3000);
+function makeAPIConfig(name) {
+    return {
+        url: '/' + name,
+        method: 'get',
+        res: function (req, res) {
+            return {
+                status: 200,
+                body: JSON.stringify(storage[name])
+            };
+        }
+    };
+}
 
 function makeStringDate(date) {
     return [
@@ -29,36 +38,6 @@ function makeStringDate(date) {
         date.getMonth() + 1,
         date.getDate()
     ].join('-');
-}
-
-function updatePairingHareruya() {
-    client.fetch('http://www.happymtg.com/pairing/legacy/PL.html', {}, function (err, $, res) {
-      // 記事のタイトルを取得
-      var body = $('body').text();
-
-      if (body.match(/準備中/)) {
-        console.log("データなし");
-      }
-      else {
-        console.log(body);
-      }
-    });
-}
-
-function updateHitChartHareruya() {
-    client.fetch('http://www.hareruyamtg.com/jp/default.aspx', {}, function (err, $, res) {
-      // 記事のタイトルを取得
-      $('#hit_legacy .weekg').each(function() {
-          var $this = $(this),
-              deckname = $this.find('.deck_title_top a').text().trim(),
-              deckcount = 1 * $this.find('.formatcount').text().trim();
-
-          deckname = deckname.split('/')[1];
-          hit_chart[deckname] = deckcount;
-      });
-
-      console.log('update: HitChart');
-    });
 }
 
 function updateDecklistSCG() {
@@ -109,24 +88,26 @@ function updateDecklistSCG() {
                 return;
             }
 
-            if (val <= 3) {
+            if (deck['Finish'] <= 3) {
                 decks.push(deck);
             }
             alldecks.push(deck);
         });
 
-        decklists = decks;
+        storage.decklists = decks;
         console.log('update: DeckLists');
 
-        deckdetails = [];
-        usecards = [];
-        decktypecount = {};
+        storage.deckdetails = [];
+        storage.usecards = [];
+        storage.__usecards = [];
+        storage.decktypecount = {};
         updateDeckTypeCountSCG(alldecks);
-        // updateDeckDetailRecursiveSCG(decklists.slice());
+        updateDeckDetailRecursiveSCG(storage.decklists.slice());
     });
 }
 function updateDeckTypeCountSCG(alldecks) {
     var name,
+        deck,
         decks = [];
 
     // 集計
@@ -159,18 +140,15 @@ function updateDeckTypeCountSCG(alldecks) {
     });
 
     // 配列形式を元のシンプルな形式に修正
-    for (deck in alldecks) {
-        decktypecount[alldecks[deck]['name']] = alldecks[deck]['count'];
-    }
+    storage.decktypecount = alldecks;
 
     console.log('update: DeckTypeCount');
-    console.log(decktypecount);
 }
 function updateDeckDetailRecursiveSCG(decks) {
     var deck = decks.shift(),
         count = 0,
-        main = [],
-        side = [];
+        main = {},
+        side = {};
 
     if (deck) {
         client.fetch(deck['detaillink'], {}, function (err, $, res) {
@@ -180,10 +158,10 @@ function updateDeckDetailRecursiveSCG(decks) {
                     num = 1 * line[1];
 
                 // デッキで使用されてるカード毎に枚数を集計
-                if (!usecards[name]) {
-                    usecards[name] = 0
+                if (!storage.__usecards[name]) {
+                    storage.__usecards[name] = 0
                 }
-                usecards[name] += num;
+                storage.__usecards[name] += num;
 
                 // デッキリスト
                 count += 1 * num;
@@ -196,7 +174,7 @@ function updateDeckDetailRecursiveSCG(decks) {
                 }
             });
 
-            deckdetails.push({
+            storage.deckdetails.push({
                 'main': main,
                 'side': side
             });
@@ -206,6 +184,35 @@ function updateDeckDetailRecursiveSCG(decks) {
     }
     else {
         console.log('update: DeckDetail');
+        updateUseCardCount();
     }
 }
 
+function updateUseCardCount() {
+    var name,
+        card,
+        cards = [];
+
+    // sortのため配列形式の変更
+    for (card in storage.__usecards) {
+        cards.push({
+            'name': card,
+            'count': storage.__usecards[card]
+        });
+    }
+
+    cards.sort(function(a, b) {
+        if (a['count'] < b['count']) {
+            return 1;
+        }
+        if (a['count'] > b['count']) {
+            return -1;
+        }
+        return 0;
+    });
+
+    // 配列形式を元のシンプルな形式に修正
+    storage.usecards = cards;
+
+    console.log('update: UseCards');
+}

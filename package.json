@@ -1,10 +1,11 @@
 {
-  "name": "scraping_sample",
-  "version": "0.0.1",
-  "description": "scraping sample",
-  "author": "Rei Matsushita",
+  "name": "mtg-deckdata",
+  "version": "0.0.2",
+  "description": "mtg deckdata",
+  "author": "Atsushi-Mizoue",
   "license": "MIT",
   "dependencies": {
-    "cheerio-httpcli":"*"
+    "cheerio-httpcli":"*",
+    "mocky":"*"
   }
 }
