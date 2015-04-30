@@ -17,7 +17,7 @@ mocky.createServer([
     makeAPIConfig('deckdetails'),
     makeAPIConfig('usecards'),
     makeAPIConfig('decktypecount'),
-]).listen(3000);
+]).listen(process.env.PORT || 3000);
 
 function makeAPIConfig(name) {
     return {
