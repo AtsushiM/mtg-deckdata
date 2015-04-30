@@ -1,6 +1,10 @@
 {
   "name": "mtg-deckdata",
   "version": "0.0.2",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
   "description": "mtg deckdata",
   "author": "Atsushi-Mizoue",
   "license": "MIT",
