@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "cheerio-httpcli":"*",
-    "mocky":"*"
+    "mocky":"*",
+    "mongoose":"*"
   }
 }

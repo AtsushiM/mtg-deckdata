@@ -1,5 +1,18 @@
 var client = require('cheerio-httpcli'),
     mocky = require('mocky'),
+    mongoose = require('mongoose'),
+    db = mongoose.connect('mongodb://localhost/mtg-deckdata'),
+    DeckDataSchema = new mongoose.Schema({
+        date: {
+            start: String,
+            end: String
+        },
+        decklists: Object,
+        deckdetails: Object,
+        usecards: Object,
+        decktypecount: Object
+    }),
+    DeckData = db.model('deckdata', DeckDataSchema),
     storage;
 
 function resetStorage() {
@@ -8,7 +21,7 @@ function resetStorage() {
             start: '',
             end: ''
         },
-        decklists: [],
+        decklists: {},
         deckdetails: {},
         __deckdetails: [],
         usecards: {},
@@ -240,13 +253,39 @@ function _contupUseCards(key, ary) {
 
 function updateUseCardCount() {
     var main = _sortUseCards('main'),
-        side = _sortUseCards('side');
+        side = _sortUseCards('side'),
+        dd;
 
     storage.usecards = {
         date: storage.date,
         main: main,
         side: side
     };
+
+    //{"date": {"start": storage.date.start}}
+    DeckData.findOne({date: storage.date}, function (err, docs) {
+        console.log(docs);
+
+        if (docs !== null) {
+            return;
+        }
+
+        dd = new DeckData({
+            date: storage.date,
+            decklists: storage.decklists,
+            deckdetails: storage.deckdetails,
+            usecards: storage.usecards,
+            decktypecount: storage.decktypecount
+        });
+
+        dd.save(function(err) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+        });
+    });
+
     console.log('update: UseCards');
 }
 function _sortUseCards(key) {
