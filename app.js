@@ -1,8 +1,12 @@
 var client = require('cheerio-httpcli'),
     mocky = require('mocky'),
+    storage;
+
+function resetStorage() {
     storage = {
         decklists: [],
         deckdetails: [],
+        __deckdetails: [],
         usecards: {},
         __usecards: {
             main: {},
@@ -10,6 +14,9 @@ var client = require('cheerio-httpcli'),
         },
         decktypecount: {}
     };
+}
+
+resetStorage();
 
 // API起動
 mocky.createServer([
@@ -39,6 +46,16 @@ function loopUpdateDecklistSCG() {
     setTimeout(updateDecklistSCG, 12 * 60 * 60 * 1000);
 }
 
+function sortArrayCountDesc(a, b) {
+    if (a['count'] < b['count']) {
+        return 1;
+    }
+    if (a['count'] > b['count']) {
+        return -1;
+    }
+    return 0;
+}
+
 function makeStringDate(date) {
     return [
         date.getFullYear(),
@@ -47,13 +64,21 @@ function makeStringDate(date) {
     ].join('-');
 }
 
-function updateDecklistSCG() {
+function fetchSCGDeckdata(action) {
     var now = new Date();
         before_1month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
         end_date = makeStringDate(now),
         start_date = makeStringDate(before_1month);
 
-    client.fetch('http://sales.starcitygames.com/deckdatabase/deckshow.php?&t[C1]=3&start_date=' + start_date + '&end_date=' + end_date + '&start_num=0&limit=100', {}, function (err, $, res) {
+    client.fetch(
+        'http://sales.starcitygames.com/deckdatabase/deckshow.php?&t[C1]=3&start_date='
+        + start_date
+        + '&end_date=' + end_date
+        + '&start_num=0&limit=100', {}, action);
+}
+
+function updateDecklistSCG() {
+    fetchSCGDeckdata(function (err, $, res) {
         var $lists = $('#content table'),
             labels = [],
             decks = [],
@@ -104,15 +129,13 @@ function updateDecklistSCG() {
         storage.decklists = decks;
         console.log('update: DeckLists');
 
-        storage.deckdetails = [];
-        storage.usecards = [];
+        storage.__deckdetails = [];
         storage.__usecards = {
             main: {},
             side: {}
         };
-        storage.decktypecount = {};
         updateDeckTypeCountSCG(alldecks);
-        updateDeckDetailRecursiveSCG(storage.decklists.slice());
+        updateDeckDetailRecursiveSCG(storage.decklists, 0);
     });
 }
 function updateDeckTypeCountSCG(alldecks) {
@@ -139,30 +162,22 @@ function updateDeckTypeCountSCG(alldecks) {
         });
     }
 
-    alldecks.sort(function(a, b) {
-        if (a['count'] < b['count']) {
-            return 1;
-        }
-        if (a['count'] > b['count']) {
-            return -1;
-        }
-        return 0;
-    });
+    alldecks.sort(sortArrayCountDesc);
 
     // 配列形式を元のシンプルな形式に修正
     storage.decktypecount = alldecks;
 
     console.log('update: DeckTypeCount');
 }
-function updateDeckDetailRecursiveSCG(decks) {
-    var deck = decks.shift(),
-        count = 0,
-        main = {},
-        side = {},
-        i;
+function updateDeckDetailRecursiveSCG(decks, pointer) {
+    var deck = decks[pointer];
 
     if (deck) {
         client.fetch(deck['detaillink'], {}, function (err, $, res) {
+        var count = 0,
+            main = {},
+            side = {};
+
             $('.deck_listing2').find('li').each(function() {
                 var line = $(this).text().trim().match(/^([0-9]+)\s(.+)$/),
                     name = line[2],
@@ -179,76 +194,58 @@ function updateDeckDetailRecursiveSCG(decks) {
                 }
             });
 
-            for (i in main) {
-                // デッキで使用されてるカード毎に枚数を集計
-                if (!storage.__usecards['main'][i]) {
-                    storage.__usecards['main'][i] = 0
-                }
-                storage.__usecards.main[i] += main[i];
-            }
-            for (i in side) {
-                // デッキで使用されてるカード毎に枚数を集計
-                if (!storage.__usecards.side[i]) {
-                    storage.__usecards.side[i] = 0
-                }
-                storage.__usecards.side[i] += side[i];
-            }
-
-            storage.deckdetails.push({
-                'main': main,
-                'side': side
+            storage.__deckdetails.push({
+                meta: deck,
+                main: main,
+                side: side
             });
 
-            updateDeckDetailRecursiveSCG(decks);
+            _contupUseCards('main', main);
+            _contupUseCards('side', side);
+
+            updateDeckDetailRecursiveSCG(decks, pointer + 1);
         });
     }
     else {
         console.log('update: DeckDetail');
+        storage.deckdetails = storage.__deckdetails;
         updateUseCardCount();
+    }
+}
+function _contupUseCards(key, ary) {
+    var i;
+
+    for (i in ary) {
+        // デッキで使用されてるカード毎に枚数を集計
+        if (!storage.__usecards[key][i]) {
+            storage.__usecards[key][i] = 0
+        }
+        storage.__usecards[key][i] += ary[i];
     }
 }
 
 function updateUseCardCount() {
-    var name,
-        card,
-        cards = {
-            main: [],
-            side: []
-        };
+    var main = _sortUseCards('main'),
+        side = _sortUseCards('side');
+
+    storage.usecards = {
+        main: main,
+        side: side
+    };
+    console.log('update: UseCards');
+}
+function _sortUseCards(key) {
+    var i,
+        cards = [];
 
     // sortのため配列形式の変更
-    for (card in storage.__usecards.main) {
-        cards.main.push({
-            'name': card,
-            'count': storage.__usecards.main[card]
+    for (i in storage.__usecards[key]) {
+        cards.push({
+            'name': i,
+            'count': storage.__usecards[key][i]
         });
     }
-    cards.main.sort(function(a, b) {
-        if (a['count'] < b['count']) {
-            return 1;
-        }
-        if (a['count'] > b['count']) {
-            return -1;
-        }
-        return 0;
-    });
+    cards.sort(sortArrayCountDesc);
 
-    for (card in storage.__usecards.side) {
-        cards.side.push({
-            'name': card,
-            'count': storage.__usecards.side[card]
-        });
-    }
-    cards.side.sort(function(a, b) {
-        if (a['count'] < b['count']) {
-            return 1;
-        }
-        if (a['count'] > b['count']) {
-            return -1;
-        }
-        return 0;
-    });
-
-    storage.usecards = cards;
-    console.log('update: UseCards');
+    return cards;
 }
