@@ -4,8 +4,12 @@ var client = require('cheerio-httpcli'),
 
 function resetStorage() {
     storage = {
+        date: {
+            start: '',
+            end: ''
+        },
         decklists: [],
-        deckdetails: [],
+        deckdetails: {},
         __deckdetails: [],
         usecards: {},
         __usecards: {
@@ -70,11 +74,12 @@ function fetchSCGDeckdata(action) {
         end_date = makeStringDate(now),
         start_date = makeStringDate(before_1month);
 
-    client.fetch(
-        'http://sales.starcitygames.com/deckdatabase/deckshow.php?&t[C1]=3&start_date='
-        + start_date
-        + '&end_date=' + end_date
-        + '&start_num=0&limit=100', {}, action);
+    storage.date = {
+        start: start_date,
+        end: end_date,
+    };
+
+    client.fetch( 'http://sales.starcitygames.com/deckdatabase/deckshow.php?&t[C1]=3&start_date=' + start_date + '&end_date=' + end_date + '&start_num=0&limit=100', {}, action);
 }
 
 function updateDecklistSCG() {
@@ -126,7 +131,10 @@ function updateDecklistSCG() {
             alldecks.push(deck);
         });
 
-        storage.decklists = decks;
+        storage.decklists = {
+            date: storage.date,
+            decks: decks
+        };
         console.log('update: DeckLists');
 
         storage.__deckdetails = [];
@@ -165,12 +173,15 @@ function updateDeckTypeCountSCG(alldecks) {
     alldecks.sort(sortArrayCountDesc);
 
     // 配列形式を元のシンプルな形式に修正
-    storage.decktypecount = alldecks;
+    storage.decktypecount = {
+        date: storage.date,
+        decks: alldecks
+    };
 
     console.log('update: DeckTypeCount');
 }
 function updateDeckDetailRecursiveSCG(decks, pointer) {
-    var deck = decks[pointer];
+    var deck = decks.decks[pointer];
 
     if (deck) {
         client.fetch(deck['detaillink'], {}, function (err, $, res) {
@@ -207,8 +218,11 @@ function updateDeckDetailRecursiveSCG(decks, pointer) {
         });
     }
     else {
+        storage.deckdetails = {
+            date: storage.date,
+            decks: storage.__deckdetails
+        };
         console.log('update: DeckDetail');
-        storage.deckdetails = storage.__deckdetails;
         updateUseCardCount();
     }
 }
@@ -229,6 +243,7 @@ function updateUseCardCount() {
         side = _sortUseCards('side');
 
     storage.usecards = {
+        date: storage.date,
         main: main,
         side: side
     };
