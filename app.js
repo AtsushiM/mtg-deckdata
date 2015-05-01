@@ -3,8 +3,11 @@ var client = require('cheerio-httpcli'),
     storage = {
         decklists: [],
         deckdetails: [],
-        usecards: [],
-        __usecards: [],
+        usecards: {},
+        __usecards: {
+            main: {},
+            side: {}
+        },
         decktypecount: {}
     };
 
@@ -103,7 +106,10 @@ function updateDecklistSCG() {
 
         storage.deckdetails = [];
         storage.usecards = [];
-        storage.__usecards = [];
+        storage.__usecards = {
+            main: {},
+            side: {}
+        };
         storage.decktypecount = {};
         updateDeckTypeCountSCG(alldecks);
         updateDeckDetailRecursiveSCG(storage.decklists.slice());
@@ -152,7 +158,8 @@ function updateDeckDetailRecursiveSCG(decks) {
     var deck = decks.shift(),
         count = 0,
         main = {},
-        side = {};
+        side = {},
+        i;
 
     if (deck) {
         client.fetch(deck['detaillink'], {}, function (err, $, res) {
@@ -160,12 +167,6 @@ function updateDeckDetailRecursiveSCG(decks) {
                 var line = $(this).text().trim().match(/^([0-9]+)\s(.+)$/),
                     name = line[2],
                     num = 1 * line[1];
-
-                // デッキで使用されてるカード毎に枚数を集計
-                if (!storage.__usecards[name]) {
-                    storage.__usecards[name] = 0
-                }
-                storage.__usecards[name] += num;
 
                 // デッキリスト
                 count += 1 * num;
@@ -177,6 +178,21 @@ function updateDeckDetailRecursiveSCG(decks) {
                     side[name] = num;
                 }
             });
+
+            for (i in main) {
+                // デッキで使用されてるカード毎に枚数を集計
+                if (!storage.__usecards['main'][i]) {
+                    storage.__usecards['main'][i] = 0
+                }
+                storage.__usecards.main[i] += main[i];
+            }
+            for (i in side) {
+                // デッキで使用されてるカード毎に枚数を集計
+                if (!storage.__usecards.side[i]) {
+                    storage.__usecards.side[i] = 0
+                }
+                storage.__usecards.side[i] += side[i];
+            }
 
             storage.deckdetails.push({
                 'main': main,
@@ -195,17 +211,19 @@ function updateDeckDetailRecursiveSCG(decks) {
 function updateUseCardCount() {
     var name,
         card,
-        cards = [];
+        cards = {
+            main: [],
+            side: []
+        };
 
     // sortのため配列形式の変更
-    for (card in storage.__usecards) {
-        cards.push({
+    for (card in storage.__usecards.main) {
+        cards.main.push({
             'name': card,
-            'count': storage.__usecards[card]
+            'count': storage.__usecards.main[card]
         });
     }
-
-    cards.sort(function(a, b) {
+    cards.main.sort(function(a, b) {
         if (a['count'] < b['count']) {
             return 1;
         }
@@ -215,8 +233,22 @@ function updateUseCardCount() {
         return 0;
     });
 
-    // 配列形式を元のシンプルな形式に修正
-    storage.usecards = cards;
+    for (card in storage.__usecards.side) {
+        cards.side.push({
+            'name': card,
+            'count': storage.__usecards.side[card]
+        });
+    }
+    cards.side.sort(function(a, b) {
+        if (a['count'] < b['count']) {
+            return 1;
+        }
+        if (a['count'] > b['count']) {
+            return -1;
+        }
+        return 0;
+    });
 
+    storage.usecards = cards;
     console.log('update: UseCards');
 }
