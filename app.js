@@ -8,10 +8,7 @@ var client = require('cheerio-httpcli'),
         decktypecount: {}
     };
 
-updateDecklistSCG();
-
-// setInterval(updateHitChartHareruya, 1 * 60 * 60 * 1000);
-
+// API起動
 mocky.createServer([
     makeAPIConfig('decklists'),
     makeAPIConfig('deckdetails'),
@@ -30,6 +27,13 @@ function makeAPIConfig(name) {
             };
         }
     };
+}
+
+// データ更新
+loopUpdateDecklistSCG();
+function loopUpdateDecklistSCG() {
+    updateDecklistSCG();
+    setTimeout(updateDecklistSCG, 12 * 60 * 60 * 1000);
 }
 
 function makeStringDate(date) {
