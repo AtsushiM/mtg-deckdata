@@ -4,7 +4,8 @@ var client = require('cheerio-httpcli'),
     wick = require('./wick').Wick,
     scrape = require('./scrape_scg'),
     util = require('./util'),
-    db = mongoose.connect('mongodb://localhost/mtg-deckdata'),
+    port = process.env.PORT || 3000,
+    db = mongoose.connect(port === 3000 ? 'mongodb://heroku_app36379179:l9laqfs29muk5u1uvmie4627bm@ds031982.mongolab.com:31982/heroku_app36379179' : 'mongodb://localhost/mtg-deckdata'),
     DeckDataSchema = new mongoose.Schema({
         date: {
             start: String,
@@ -57,7 +58,7 @@ mocky.createServer([
     makeAPIConfig('deckdetails'),
     makeAPIConfig('usecards'),
     makeAPIConfig('decktypecount'),
-]).listen(process.env.PORT || 3000);
+]).listen(port);
 
 // データ更新
 loopUpdateDecklistSCG();
