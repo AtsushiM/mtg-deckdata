@@ -5,7 +5,7 @@ var client = require('cheerio-httpcli'),
     scrape = require('./scrape_scg'),
     util = require('./util'),
     port = process.env.PORT || 3000,
-    db = mongoose.connect(port === 3000 ? 'mongodb://heroku_app36379179:l9laqfs29muk5u1uvmie4627bm@ds031982.mongolab.com:31982/heroku_app36379179' : 'mongodb://localhost/mtg-deckdata'),
+    db = mongoose.connect(port === 3000 ? 'mongodb://localhost/mtg-deckdata' : 'mongodb://heroku_app36379179:l9laqfs29muk5u1uvmie4627bm@ds031982.mongolab.com:31982/heroku_app36379179'),
     DeckDataSchema = new mongoose.Schema({
         date: {
             start: String,
