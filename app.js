@@ -2,6 +2,8 @@ var client = require('cheerio-httpcli'),
     mocky = require('mocky'),
     mongoose = require('mongoose'),
     wick = require('./wick').Wick,
+    scrape = require('./scrape_scg'),
+    util = require('./util'),
     db = mongoose.connect('mongodb://localhost/mtg-deckdata'),
     DeckDataSchema = new mongoose.Schema({
         date: {
@@ -36,14 +38,6 @@ function resetStorage() {
 
 resetStorage();
 
-// API起動
-mocky.createServer([
-    makeAPIConfig('decklists'),
-    makeAPIConfig('deckdetails'),
-    makeAPIConfig('usecards'),
-    makeAPIConfig('decktypecount'),
-]).listen(process.env.PORT || 3000);
-
 function makeAPIConfig(name) {
     return {
         url: '/' + name,
@@ -57,45 +51,19 @@ function makeAPIConfig(name) {
     };
 }
 
+// API起動
+mocky.createServer([
+    makeAPIConfig('decklists'),
+    makeAPIConfig('deckdetails'),
+    makeAPIConfig('usecards'),
+    makeAPIConfig('decktypecount'),
+]).listen(process.env.PORT || 3000);
+
 // データ更新
 loopUpdateDecklistSCG();
 function loopUpdateDecklistSCG() {
     updateDecklistSCG();
-    setTimeout(updateDecklistSCG, 12 * 60 * 60 * 1000);
-}
-
-function sortArrayCountDesc(a, b) {
-    if (a['count'] < b['count']) {
-        return 1;
-    }
-    if (a['count'] > b['count']) {
-        return -1;
-    }
-    return 0;
-}
-
-function makeStringDate(date) {
-    return [
-        date.getFullYear(),
-        date.getMonth() + 1,
-        date.getDate()
-    ].join('-');
-}
-
-function fetchSCGDeckdata(done) {
-    var now = new Date();
-        before_1month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-        end_date = makeStringDate(now),
-        start_date = makeStringDate(before_1month);
-
-    storage.date = {
-        start: start_date,
-        end: end_date,
-    };
-
-    client.fetch('http://sales.starcitygames.com/deckdatabase/deckshow.php?&t[C1]=3&start_date=' + start_date + '&end_date=' + end_date + '&start_num=0&limit=100', {}, function (err, $, res) {
-        done($);
-    });
+    setTimeout(updateDecklistSCG, 30 * 60 * 1000);
 }
 
 function updateDecklistSCG() {
@@ -104,12 +72,31 @@ function updateDecklistSCG() {
         alldecks,
         sync = new wick.Sync({
         queue: [
+            // 対象期間の作成
+            function() {
+                storage.date = util.makeDateSpan();
+            },
             // 基本データ取得
             function(done) {
-                fetchSCGDeckdata(function(deckdata) {
-                    $ = deckdata;
+                DeckData.findOne({date: storage.date}, function (err, docs) {
+                    // 存在しない場合はSCGからスクレイピングでデータを取得
+                    if (docs === null) {
+                        scrape.decklists(storage.date, function(deckdata) {
+                            $ = deckdata;
+                            done();
+                        });
+                    }
+                    // 存在する場合はセット
+                    else {
+                        storage.decklists = docs.decklists;
+                        storage.deckdetails = docs.deckdetails;
+                        storage.usecards = docs.usecards;
+                        storage.decktypecount = docs.decktypecount;
 
-                    done();
+                        sync.stop();
+
+                        console.log('cache: load complete');
+                    }
                 });
             },
             // ラベル取得
@@ -215,7 +202,7 @@ function updateDeckTypeCountSCG(alldecks) {
         });
     }
 
-    alldecks.sort(sortArrayCountDesc);
+    alldecks.sort(util.sortArrayCountDesc);
 
     // 配列形式を元のシンプルな形式に修正
     storage.decktypecount = {
@@ -267,8 +254,11 @@ function updateDeckDetailRecursiveSCG(decks, pointer, done) {
             date: storage.date,
             decks: storage.__deckdetails
         };
+
+        console.log(decks.decks.length);
+
         console.log('update: DeckDetail');
-        updateUseCardCount();
+        updateUseCardCount(decks.decks.length);
         done();
     }
 }
@@ -284,9 +274,9 @@ function _contupUseCards(key, ary) {
     }
 }
 
-function updateUseCardCount() {
-    var main = _sortUseCards('main'),
-        side = _sortUseCards('side'),
+function updateUseCardCount(deckcount) {
+    var main = _sortUseCards('main', deckcount),
+        side = _sortUseCards('side', deckcount),
         dd;
 
     storage.usecards = {
@@ -319,18 +309,21 @@ function updateUseCardCount() {
 
     console.log('update: UseCards');
 }
-function _sortUseCards(key) {
+function _sortUseCards(key, deckcount) {
     var i,
-        cards = [];
+        cards = [],
+        count;
 
     // sortのため配列形式の変更
     for (i in storage.__usecards[key]) {
+        count = storage.__usecards[key][i];
         cards.push({
             'name': i,
-            'count': storage.__usecards[key][i]
+            'count': count,
+            'adoption_rate': Math.round((count / deckcount) * 100) / 100
         });
     }
-    cards.sort(sortArrayCountDesc);
+    cards.sort(util.sortArrayCountDesc);
 
     return cards;
 }
