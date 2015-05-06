@@ -8,5 +8,10 @@ module.exports = {
             + date.end + '&start_num=0&limit=100', {}, function (err, $, res) {
             done($);
         });
+    },
+    deckdetail: function(deck, done) {
+        client.fetch(deck['detaillink'], {}, function (err, $, res) {
+            done($);
+        });
     }
 };

@@ -22,6 +22,19 @@ var util = require('./util'),
         decktypecount: Object
     };
 
+function fetchStorage(docs) {
+    if (docs === null) {
+        return false;
+    }
+
+    storage.decklists = docs.decklists;
+    storage.deckdetails = docs.deckdetails;
+    storage.usecards = docs.usecards;
+    storage.decktypecount = docs.decktypecount;
+
+    return true;
+}
+
 module.exports = {
     getSchema: function() {
         return SCHEMA;
@@ -41,16 +54,11 @@ module.exports = {
 
         return db.model('deckdata', schema);
     },
-    fetchStorage: function(docs) {
-        if (docs === null) {
-            return false;
-        }
-
-        storage.decklists = docs.decklists;
-        storage.deckdetails = docs.deckdetails;
-        storage.usecards = docs.usecards;
-        storage.decktypecount = docs.decktypecount;
-
-        return true;
+    loadCache: function(model, date, done) {
+        model.findOne({date: date}, function (err, docs) {
+            if (docs !== null) {
+                done(fetchStorage(docs));
+            }
+        });
     }
 };

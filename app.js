@@ -1,13 +1,13 @@
-var client = require('cheerio-httpcli'),
+var config = require('./config'),
     wick = require('./wick').Wick,
-    scrape = require('./scrape_scg'),
+    scrape = require('./fetch_scg'),
     util = require('./util'),
     api = require('./api'),
     db = require('./db'),
+    format = require('./dataformat'),
     port = util.getPort(),
     DeckData = db.getModel(),
-    storage = db.getVolatileStorage(),
-    TOPDECKLIMIT = 8;
+    storage = db.getVolatileStorage();
 
 api.activate(db.getSchema(), storage);
 
@@ -15,97 +15,37 @@ api.activate(db.getSchema(), storage);
 loopUpdateDecklistSCG();
 function loopUpdateDecklistSCG() {
     updateDecklistSCG();
-    setTimeout(updateDecklistSCG, 30 * 60 * 1000);
+    setTimeout(updateDecklistSCG, config.UPDATE_SPAN);
 }
 
 function updateDecklistSCG() {
     var $,
         labels = [],
-        alldecks,
         sync = new wick.Sync({
             queue: [
                 // 対象期間の作成
                 function() {
                     storage.date = util.makeDateSpan();
                 },
-                // 基本データ取得
+                // キャッシュが存在する場合はメモリ上に展開
                 function(done) {
-                    DeckData.findOne({date: storage.date}, function (err, docs) {
-                        // 存在しない場合はSCGからスクレイピングでデータを取得
-                        if (docs === null) {
-                            scrape.decklists(storage.date, function(deckdata) {
-                                $ = deckdata;
-                                done();
-                            });
-                        }
-                        // 存在する場合はセット
-                        else {
-                            db.fetchStorage(docs);
+                    db.loadCache(DeckData, storage.date, function(result) {
+                        // // 存在する場合はタスク終了
+                        // if (result === true) {
+                        //     sync.stop();
+                        //     console.log('cache: load complete');
+                        //
+                        //     return;
+                        // }
 
-                            sync.stop();
-                            console.log('cache: load complete');
-                        }
+                        // 存在しない場合は次へ
+                        done();
                     });
                 },
-                // ラベル取得
+                // decklistsのデータを作成
+                format.taskDecklists(storage),
                 function() {
-                    var $lists = $('#content table');
-
-                    $lists.find('.deckdbheader').each(function () {
-                        labels.push($(this).text());
-                    });
-                },
-                // デッキ情報
-                function() {
-                    var topdecks = [],
-                        decks = [];
-
-                    $('#content table tr').each(function() {
-                        var i = 0,
-                            val,
-                            deck = {},
-                            $deck;
-
-                        $(this).find('.deckdbbody, .deckdbbody2').each(function() {
-                            if (labels[i]) {
-                                $deck = $(this);
-                                val = $deck.text().trim().replace(/\&nbsp;/g, '');
-
-                                switch (labels[i]) {
-                                    case 'Deck':
-                                        // link取得
-                                        deck['detaillink'] = $deck.find('a').attr('href');
-                                        break;
-                                    case 'Finish':
-                                        val = 1 * val.replace(/^([0-9]+)[a-z]+$/, '$1');
-                                        break;
-                                }
-
-                                deck[labels[i]] = val;
-                            }
-                            i++;
-                        });
-
-                        // デッキ情報以外が混ざりこむことを回避
-                        if (!deck['Location']) {
-                            return;
-                        }
-
-                        if (deck['Finish'] <= TOPDECKLIMIT) {
-                            topdecks.push(deck);
-                        }
-                        decks.push(deck);
-                    });
-
-                    alldecks = decks;
-                    storage.decklists = {
-                        date: storage.date,
-                        decks: topdecks
-                    };
-                    console.log('update: DeckLists');
-                },
-                function() {
-                    updateDeckTypeCountSCG(alldecks);
+                    updateDeckTypeCountSCG(storage.decklists.decks);
                 },
                 function(done) {
                     storage.__deckdetails = [];
@@ -117,8 +57,6 @@ function updateDecklistSCG() {
                     updateDeckDetailRecursiveSCG(storage.decklists, 0, done);
                 }
             ],
-            onprogress: function() {
-            },
             oncomplete: function() {
                 console.log('success');
             }
@@ -164,7 +102,7 @@ function updateDeckDetailRecursiveSCG(decks, pointer, done) {
     var deck = decks.decks[pointer];
 
     if (deck) {
-        client.fetch(deck['detaillink'], {}, function (err, $, res) {
+        scrape.deckdetail(deck, function ($) {
             var count = 0,
                 main = {},
                 side = {};
