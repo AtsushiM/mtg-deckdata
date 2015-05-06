@@ -711,3 +711,12 @@ ns['Done'] = AbstractTask;
 ns['Serial'] = ns['Sync'] = Sync;
 
 ns['Parallel'] = ns['Async'] = Async;
+
+ns['util'] = {
+    isNumber: isNumber,
+    isString: isString,
+    isArray: isArray,
+    isFunction: isFunction,
+    isObject: isObject,
+    isDefined: isDefined
+};

@@ -5,7 +5,11 @@ function makeStringDate(date) {
         date.getDate()
     ].join('-');
 }
+
 module.exports = {
+    getPort: function() {
+        return process.env.PORT || 3000;
+    },
     makeDateSpan: function() {
         var now = new Date();
             before_1month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
