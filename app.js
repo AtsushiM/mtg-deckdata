@@ -17,7 +17,8 @@ var client = require('cheerio-httpcli'),
         decktypecount: Object
     }),
     DeckData = db.model('deckdata', DeckDataSchema),
-    storage;
+    storage,
+    TOPDECKLIMIT = 8;
 
 function resetStorage() {
     storage = {
@@ -110,7 +111,7 @@ function updateDecklistSCG() {
             },
             // デッキ情報
             function() {
-                var top3 = [],
+                var topdecks = [],
                     decks = [];
 
                 $('#content table tr').each(function() {
@@ -144,8 +145,8 @@ function updateDecklistSCG() {
                         return;
                     }
 
-                    if (deck['Finish'] <= 3) {
-                        top3.push(deck);
+                    if (deck['Finish'] <= TOPDECKLIMIT) {
+                        topdecks.push(deck);
                     }
                     decks.push(deck);
                 });
@@ -153,7 +154,7 @@ function updateDecklistSCG() {
                 alldecks = decks;
                 storage.decklists = {
                     date: storage.date,
-                    decks: top3
+                    decks: topdecks
                 };
                 console.log('update: DeckLists');
             },
@@ -218,9 +219,9 @@ function updateDeckDetailRecursiveSCG(decks, pointer, done) {
 
     if (deck) {
         client.fetch(deck['detaillink'], {}, function (err, $, res) {
-        var count = 0,
-            main = {},
-            side = {};
+            var count = 0,
+                main = {},
+                side = {};
 
             $('.deck_listing2').find('li').each(function() {
                 var line = $(this).text().trim().match(/^([0-9]+)\s(.+)$/),
@@ -247,7 +248,9 @@ function updateDeckDetailRecursiveSCG(decks, pointer, done) {
             _contupUseCards('main', main);
             _contupUseCards('side', side);
 
-            updateDeckDetailRecursiveSCG(decks, pointer + 1, done);
+            setTimeout(function() {
+                updateDeckDetailRecursiveSCG(decks, pointer + 1, done);
+            }, 1000);
         });
     }
     else {
