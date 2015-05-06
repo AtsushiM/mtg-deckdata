@@ -1,5 +1,7 @@
-var datalists = require('./dataformat/decklists');
+var decklists = require('./dataformat/decklists'),
+    decktypecount = require('./dataformat/decktypecount');
 
 module.exports = {
-    taskDecklists: datalists.makeTask,
+    taskDecklists: decklists.makeTask,
+    taskDecktypecount: decktypecount.makeTask,
 };

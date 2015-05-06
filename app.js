@@ -44,9 +44,8 @@ function updateDecklistSCG() {
                 },
                 // decklistsのデータを作成
                 format.taskDecklists(storage),
-                function() {
-                    updateDeckTypeCountSCG(storage.decklists.decks);
-                },
+                // decktypecountのデータを作成
+                format.taskDecktypecount(storage),
                 function(done) {
                     storage.__deckdetails = [];
                     storage.__usecards = {
@@ -63,40 +62,6 @@ function updateDecklistSCG() {
         });
 
     sync.start();
-}
-function updateDeckTypeCountSCG(alldecks) {
-    var name,
-        deck,
-        decks = [];
-
-    // 集計
-    for (deck in alldecks) {
-        name = alldecks[deck]['Deck'];
-        if (!decks[name]) {
-            decks[name] = 0;
-        }
-
-        decks[name]++;
-    }
-
-    alldecks = [];
-    // sortのため配列形式の変更
-    for (deck in decks) {
-        alldecks.push({
-            'name': deck,
-            'count': decks[deck]
-        });
-    }
-
-    alldecks.sort(util.sortArrayCountDesc);
-
-    // 配列形式を元のシンプルな形式に修正
-    storage.decktypecount = {
-        date: storage.date,
-        decks: alldecks
-    };
-
-    console.log('update: DeckTypeCount');
 }
 function updateDeckDetailRecursiveSCG(decks, pointer, done) {
     var deck = decks.decks[pointer];
