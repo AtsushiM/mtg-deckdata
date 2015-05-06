@@ -60,5 +60,33 @@ module.exports = {
                 done(fetchStorage(docs));
             }
         });
+    },
+    saveCache: function(model, done) {
+        model.findOne({date: storage.date}, function (err, docs) {
+            var dd;
+
+            if (docs !== null) {
+                return false;
+            }
+
+            dd = new model({
+                date: storage.date,
+                decklists: storage.decklists,
+                deckdetails: storage.deckdetails,
+                usecards: storage.usecards,
+                decktypecount: storage.decktypecount
+            });
+
+            dd.save(function(err) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+            });
+
+            console.log('database: saved');
+
+            done();
+        });
     }
 };
