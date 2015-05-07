@@ -26,7 +26,6 @@ function updateDecklistSCG() {
                 // 対象期間の作成
                 function() {
                     storage.date = util.makeDateSpan();
-                    console.log(storage);
                 },
                 // キャッシュが存在する場合はメモリ上に展開
                 function(done) {
@@ -40,7 +39,7 @@ function updateDecklistSCG() {
                         }
 
                         // // 存在しない場合は次へ
-                        // done();
+                        done();
                     });
                 },
                 // decklistsのデータを作成
