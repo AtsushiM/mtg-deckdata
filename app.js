@@ -26,20 +26,21 @@ function updateDecklistSCG() {
                 // 対象期間の作成
                 function() {
                     storage.date = util.makeDateSpan();
+                    console.log(storage);
                 },
                 // キャッシュが存在する場合はメモリ上に展開
                 function(done) {
                     db.loadCache(DeckData, storage.date, function(result) {
-                        // // 存在する場合はタスク終了
-                        // if (result === true) {
-                        //     sync.stop();
-                        //     console.log('cache: load complete');
-                        //
-                        //     return;
-                        // }
+                        // 存在する場合はタスク終了
+                        if (result === true) {
+                            sync.stop();
+                            console.log('cache: load complete');
 
-                        // 存在しない場合は次へ
-                        done();
+                            return;
+                        }
+
+                        // // 存在しない場合は次へ
+                        // done();
                     });
                 },
                 // decklistsのデータを作成

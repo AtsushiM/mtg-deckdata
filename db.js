@@ -15,7 +15,10 @@ var util = require('./util'),
         decktypecount: {}
     },
     SCHEMA = {
-        date: Object,
+        date: {
+            start: String,
+            end: String
+        },
         decklists: Object,
         deckdetails: Object,
         usecards: Object,
@@ -55,10 +58,8 @@ module.exports = {
         return db.model('deckdata', schema);
     },
     loadCache: function(model, date, done) {
-        model.findOne({date: date}, function (err, docs) {
-            if (docs !== null) {
-                done(fetchStorage(docs));
-            }
+        model.findOne({date: {end: date.end, start: date.start}}, function (err, docs) {
+            done(fetchStorage(docs));
         });
     },
     saveCache: function(model, done) {
