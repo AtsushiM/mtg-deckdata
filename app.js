@@ -31,8 +31,9 @@ function updateDecklistSCG() {
                 // 最新日付のキャッシュが存在する場合はメモリ上に展開
                 function(done) {
                     db.loadCache(DeckData, storage.date, function(result) {
+                        console.log(storage.date, result);
                         // 存在する場合はタスク終了
-                        if (result === true) {
+                        if (result !== false) {
                             sync.stop();
                             console.log('cache: load complete');
 
