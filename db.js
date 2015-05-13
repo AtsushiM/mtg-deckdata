@@ -23,7 +23,8 @@ var util = require('./util'),
         deckdetails: Object,
         usecards: Object,
         decktypecount: Object
-    };
+    },
+    __model;
 
 function fetchStorage(docs) {
     if (docs === null) {
@@ -35,7 +36,7 @@ function fetchStorage(docs) {
     storage.usecards = docs.usecards;
     storage.decktypecount = docs.decktypecount;
 
-    return true;
+    return storage;
 }
 
 module.exports = {
@@ -46,20 +47,24 @@ module.exports = {
         return storage;
     },
     getModel: function() {
-        var port = util.getPort(),
-            path = 'mongodb://'+ (port === 3000 ? db_local : db_prod),
-            db = mongoose.connect(path),
-            schemaconf = {},
-            schema,
-            i;
+        var path = 'mongodb://'+ (util.getPort() === 3000 ? db_local : db_prod),
+            db;
 
-        schema = new mongoose.Schema(SCHEMA);
+        if (!__model) {
+            db = mongoose.connect(path);
+            __model = db.model('deckdata', new mongoose.Schema(SCHEMA));
+        }
 
-        return db.model('deckdata', schema);
+        return __model;
     },
     loadCache: function(model, date, done) {
-        model.findOne({date: {end: date.end, start: date.start}}, function (err, docs) {
+        this.getCache(model, date, function(docs) {
             done(fetchStorage(docs));
+        });
+    },
+    getCache: function(model, date, done) {
+        model.findOne({"date.end": date.end, "date.start": date.start}, function (err, docs) {
+            done(docs);
         });
     },
     saveCache: function(model, done) {

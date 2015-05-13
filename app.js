@@ -25,9 +25,10 @@ function updateDecklistSCG() {
             queue: [
                 // 対象期間の作成
                 function() {
+                    // 現在~1ヶ月前の日付を作成
                     storage.date = util.makeDateSpan();
                 },
-                // キャッシュが存在する場合はメモリ上に展開
+                // 最新日付のキャッシュが存在する場合はメモリ上に展開
                 function(done) {
                     db.loadCache(DeckData, storage.date, function(result) {
                         // 存在する場合はタスク終了

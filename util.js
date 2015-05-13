@@ -6,13 +6,31 @@ function makeStringDate(date) {
     ].join('-');
 }
 
+function makeDate(anydate) {
+    if (typeof anydate !== 'string') {
+        return new Date();
+    }
+
+    anydate = anydate.split(/[T:\-\+\/\s]/);
+
+    return new Date(
+        +anydate[0],
+        anydate[1] - 1,
+        +anydate[2],
+        +anydate[3] || 0,
+        +anydate[4] || 0,
+        +anydate[5] || 0
+    );
+}
+
 module.exports = {
     getPort: function() {
         return process.env.PORT || 3000;
     },
-    makeDateSpan: function() {
-        var now = new Date();
+    makeDateSpan: function(date) {
+        var now = makeDate(date);
             before_1month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
 
         return {
             start: makeStringDate(before_1month),
