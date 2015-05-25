@@ -5,7 +5,8 @@ var config = require('../config'),
     storage;
 
 function updateDeckDetailRecursiveSCG(decks, pointer, done) {
-    var deck = decks.decks[pointer];
+    var deck = decks.decks[pointer],
+        workdetails = storage.get('__deckdetails');
 
     if (deck) {
         scrape.deckdetail(deck, function ($) {
@@ -29,7 +30,7 @@ function updateDeckDetailRecursiveSCG(decks, pointer, done) {
                 }
             });
 
-            storage.__deckdetails.push({
+            workdetails.push({
                 meta: deck,
                 main: main,
                 side: side
@@ -42,10 +43,10 @@ function updateDeckDetailRecursiveSCG(decks, pointer, done) {
         });
     }
     else {
-        storage.deckdetails = {
+        storage.set('deckdetails', {
             date: storage.date,
-            decks: storage.__deckdetails
-        };
+            decks: workdetails
+        });
 
         console.log('update: DeckDetail');
         done();
@@ -59,13 +60,9 @@ module.exports = {
         return new wick.Sync({
             queue: [
                 function(done) {
-                    storage.__deckdetails = [];
-                    storage.__usecards = {
-                        main: {},
-                        side: {}
-                    };
+                    storage.set('__deckdetails', []);
 
-                    updateDeckDetailRecursiveSCG(storage.decklists, 0, done);
+                    updateDeckDetailRecursiveSCG(storage.get('decklists'), 0, done);
                 }
             ]
         });

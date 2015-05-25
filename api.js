@@ -7,9 +7,11 @@ var util = require('./util'),
 
 function makeAPI(name) {
     app.get('/' + name, function(req, res) {
+        var date;
+
         // queryにdateがない場合はメモリ上のデータをそのまま返す
         if (!req.query.date) {
-            return res.json(storage[name]);
+            return res.json(storage.get(name));
         }
 
         // 日付が指定されている場合はdbからデータ取得

@@ -7,7 +7,7 @@ module.exports = {
             var name,
                 deck,
                 decks = [],
-                alldecks = storage.decklists.decks;
+                alldecks = storage.get('decklists').decks;
 
             // 集計
             for (deck in alldecks) {
@@ -31,10 +31,10 @@ module.exports = {
             alldecks.sort(util.sortArrayCountDesc);
 
             // 配列形式を元のシンプルな形式に修正
-            storage.decktypecount = {
-                date: storage.date,
+            storage.set('decktypecount', {
+                date: storage.get('date'),
                 decks: alldecks
-            };
+            });
 
             console.log('update: DeckTypeCount');
         };

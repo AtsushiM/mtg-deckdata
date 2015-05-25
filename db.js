@@ -1,19 +1,9 @@
 var util = require('./util'),
+    wick = require('./wick').Wick,
     mongoose = require('mongoose'),
     db_local = 'localhost/mtg-deckdata',
     db_prod = 'heroku_app36379179:l9laqfs29muk5u1uvmie4627bm@ds031982.mongolab.com:31982/heroku_app36379179',
-    storage = {
-        date: {},
-        decklists: {},
-        deckdetails: {},
-        __deckdetails: [],
-        usecards: {},
-        __usecards: {
-            main: {},
-            side: {}
-        },
-        decktypecount: {}
-    },
+    storage = new wick.Storage(),
     SCHEMA = {
         date: {
             start: String,
@@ -26,15 +16,26 @@ var util = require('./util'),
     },
     __model;
 
+// schemaに合わせてデフォルト設定
+storage.set('date', {});
+storage.set('decklists', {});
+storage.set('deckdetails', {});
+storage.set('usecards', {});
+storage.set('decktypecount', {});
+
+// 作業用領域
+storage.set('__deckdetails', []);
+storage.set('__usecards', {});
+
 function fetchStorage(docs) {
     if (docs === null) {
         return false;
     }
 
-    storage.decklists = docs.decklists;
-    storage.deckdetails = docs.deckdetails;
-    storage.usecards = docs.usecards;
-    storage.decktypecount = docs.decktypecount;
+    storage.set('decklists', docs.decklists);
+    storage.set('deckdetails', docs.deckdetails);
+    storage.set('usecards', docs.usecards);
+    storage.set('decktypecount', docs.decktypecount);
 
     return storage;
 }
@@ -68,7 +69,7 @@ module.exports = {
         });
     },
     saveCache: function(model, done) {
-        model.findOne({date: storage.date}, function (err, docs) {
+        model.findOne({date: storage.get('date')}, function (err, docs) {
             var dd;
 
             if (docs !== null) {
@@ -76,11 +77,11 @@ module.exports = {
             }
 
             dd = new model({
-                date: storage.date,
-                decklists: storage.decklists,
-                deckdetails: storage.deckdetails,
-                usecards: storage.usecards,
-                decktypecount: storage.decktypecount
+                date: storage.get('date'),
+                decklists: storage.get('decklists'),
+                deckdetails: storage.get('deckdetails'),
+                usecards: storage.get('usecards'),
+                decktypecount: storage.get('decktypecount')
             });
 
             dd.save(function(err) {

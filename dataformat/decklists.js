@@ -10,7 +10,7 @@ module.exports = {
             queue: [
                 // データが存在しない場合はSCGからスクレイピングでデータを取得
                 function(done) {
-                    scrape.decklists(storage.date, function(deckdata) {
+                    scrape.decklists(storage.get('date'), function(deckdata) {
                         $ = deckdata;
                         done();
                     });
@@ -66,10 +66,10 @@ module.exports = {
                         decks.push(deck);
                     });
 
-                    storage.decklists = {
-                        date: storage.date,
+                    storage.set('decklists', {
+                        date: storage.get('date'),
                         decks: topdecks
-                    };
+                    });
 
                     console.log('update: DeckLists');
                 }

@@ -3,15 +3,38 @@ var config = require('../config'),
     storage;
 
 function _contupUseCards(key, ary) {
-    var i;
+    var i,
+        workusecards = storage.get('__usecards'),
+        target,
+        tmp;
 
     for (i in ary) {
         // デッキで使用されてるカード毎に枚数を集計
-        if (!storage.__usecards[key][i]) {
-            storage.__usecards[key][i] = 0
+        target = workusecards[key][i];
+        if (!target) {
+            target = workusecards[key][i] = {
+                count: 0,
+                indeck: {
+                    use1: 0,
+                    use2: 0,
+                    use3: 0,
+                    use4: 0,
+                    use4Over: 0
+                }
+            };
         }
-        storage.__usecards[key][i] += ary[i];
+
+        target['count'] += ary[i];
+
+        tmp = 'use' + ary[i];
+        if (target['indeck'][tmp] === undefined) {
+            tmp = 'use4Over';
+        }
+
+        target['indeck'][tmp]++;
     }
+
+    storage.set('__usecards', workusecards);
 }
 
 function updateUseCardCount(deckcount) {
@@ -19,11 +42,11 @@ function updateUseCardCount(deckcount) {
         side = _sortUseCards('side', deckcount),
         dd;
 
-    storage.usecards = {
+    storage.set('usecards', {
         date: storage.date,
         main: main,
         side: side
-    };
+    });
 
     console.log('update: UseCards');
 }
@@ -31,15 +54,19 @@ function updateUseCardCount(deckcount) {
 function _sortUseCards(key, deckcount) {
     var i,
         cards = [],
-        count;
+        count,
+        target,
+        workusecards = storage.get('__usecards');
 
     // sortのため配列形式の変更
-    for (i in storage.__usecards[key]) {
-        count = storage.__usecards[key][i];
+    for (i in workusecards[key]) {
+        target = workusecards[key][i];
+        count = target['count'];
         cards.push({
             'name': i,
             'count': count,
-            'adoption_rate': Math.round((count / deckcount) * 100) / 100
+            'adoption_rate': Math.round((count / deckcount) * 100) / 100,
+            'indeck': target['indeck']
         });
     }
     cards.sort(util.sortArrayCountDesc);
@@ -51,9 +78,14 @@ module.exports = {
     makeTask: function(data) {
         storage = data;
 
+        storage.set('__usecards', {
+            main: {},
+            side: {}
+        });
+
         return function() {
             var i,
-                details = storage.deckdetails.decks;
+                details = storage.get('deckdetails').decks;
 
             for (i in details) {
                 _contupUseCards('main', details[i].main);
