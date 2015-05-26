@@ -16,8 +16,8 @@ function makeAPI(name) {
 
         // 日付が指定されている場合はdbからデータ取得
         date = util.makeDateSpan(req.query.date);
-        db.getCache(db.getModel(), date, function(result) {
-            res.json(result ? result[name] : {});
+        db.loadCache(db.getModel(), date, function(result) {
+            res.json(result ? result.get(name) : {});
         });
     });
 }

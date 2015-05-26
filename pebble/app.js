@@ -118,7 +118,9 @@ function actionUsedCard() {
 
             items.push({
                 title: target.name,
-                subtitle: target.adoption_rate + '/' + indeck.use1 + ':' + indeck.use2 + ':' + indeck.use3 + ':' + indeck.use4 + '/' + target.count
+                subtitle: target.encounter_rate + ':' + target.adopotion_average + '/' +
+                    indeck.use1 + '|' + indeck.use2 + '|' + indeck.use3 + '|' + indeck.use4 + '/' +
+                    target.count
             });
         }
 

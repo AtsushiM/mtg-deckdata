@@ -1,5 +1,6 @@
 var util = require('./util'),
     wick = require('./wick').Wick,
+    dataformat = require('./dataformat'),
     mongoose = require('mongoose'),
     db_local = 'localhost/mtg-deckdata',
     db_prod = 'heroku_app36379179:l9laqfs29muk5u1uvmie4627bm@ds031982.mongolab.com:31982/heroku_app36379179',
@@ -37,7 +38,26 @@ function fetchStorage(docs) {
     storage.set('usecards', docs.usecards);
     storage.set('decktypecount', docs.decktypecount);
 
+    updateSavedCache(docs);
+
     return storage;
+}
+
+function updateSavedCache(docs) {
+    _updateSavedCacheUsecards(docs.usecards);
+}
+function _updateSavedCacheUsecards(data) {
+    var tmp;
+
+    tmp = data.main[0].indeck;
+
+    if (
+        !tmp ||
+        !tmp.use1 === undefined
+    ) {
+        tpm = dataformat.taskUsecards(storage);
+        tpm();
+    }
 }
 
 module.exports = {
@@ -70,29 +90,34 @@ module.exports = {
     },
     saveCache: function(model, done) {
         model.findOne({date: storage.get('date')}, function (err, docs) {
-            var dd;
+            var dd,
+                savedata = {
+                    date: storage.get('date'),
+                    decklists: storage.get('decklists'),
+                    deckdetails: storage.get('deckdetails'),
+                    usecards: storage.get('usecards'),
+                    decktypecount: storage.get('decktypecount')
+                };
 
             if (docs !== null) {
-                return false;
+                model.update({date: storage.get('date')}, {$set: savedata}, {upsert: false, multi: true}, function(err) {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                });
+            }
+            else {
+                dd = new model(savedata);
+                dd.save(function(err) {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                });
             }
 
-            dd = new model({
-                date: storage.get('date'),
-                decklists: storage.get('decklists'),
-                deckdetails: storage.get('deckdetails'),
-                usecards: storage.get('usecards'),
-                decktypecount: storage.get('decktypecount')
-            });
-
-            dd.save(function(err) {
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-            });
-
             console.log('database: saved');
-
             done();
         });
     }
