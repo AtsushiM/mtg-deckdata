@@ -25,7 +25,6 @@ gmenu = new UI.Menu({
 gmenu.show();
 
 gmenu.on('select', function(e) {
-             console.log(e.item.title);
   switch (e.item.title) {
       case 'DecktypeCount':
           actionDecktypeCount();
@@ -109,12 +108,17 @@ function actionUsedCard() {
 
     function createItem(data) {
         var i,
-            items = [];
+            items = [],
+            target,
+            indeck;
 
         for (i in data) {
+            target = data[i];
+            indeck = target.indeck;
+
             items.push({
-                title: data[i].name,
-                subtitle: data[i].adoption_rate + ':' + data[i].count
+                title: target.name,
+                subtitle: target.adoption_rate + '/' + indeck.use1 + ':' + indeck.use2 + ':' + indeck.use3 + ':' + indeck.use4 + '/' + target.count
             });
         }
 
