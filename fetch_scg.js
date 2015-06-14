@@ -1,9 +1,10 @@
-var client = require('cheerio-httpcli');
+var client = require('cheerio-httpcli'),
+    config = require('./config');
 
 module.exports = {
     decklists: function(date, done) {
         client.fetch(
-            'http://sales.starcitygames.com/deckdatabase/deckshow.php?&t[C1]=3&start_date='
+            config.SCG_SEARCH_BASE
             + date.start + '&end_date='
             + date.end + '&start_num=0&limit=100', {}, function (err, $, res) {
             done($);
