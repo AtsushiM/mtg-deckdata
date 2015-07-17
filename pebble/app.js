@@ -9,6 +9,7 @@ gmenu = new UI.Menu({
       { title: 'DecktypeCount' },
       { title: 'UsedCard' },
       // { title: 'DeckDetail' },
+      { title: 'HareruyaPairing' },
       { title: 'Tools' },
     ]
   }]
@@ -26,6 +27,9 @@ gmenu.on('select', function(e) {
           break;
       // case 'DeckDetail':
       //     break;
+      case 'HareruyaPairing':
+          actionHareruyaPairing();
+          break;
       case 'Tools':
           actionTools();
           break;
@@ -111,6 +115,40 @@ function actionUsedCard() {
                 subtitle: target.encounter_rate + ':' + target.adopotion_average + '/' +
                     indeck.use1 + '|' + indeck.use2 + '|' + indeck.use3 + '|' + indeck.use4 + '/' +
                     target.count
+            });
+        }
+
+        return items;
+    }
+}
+
+function actionHareruyaPairing() {
+    fetchData('harepairing', function(data) {
+        var menu = new UI.Menu({
+            sections: [{
+                items: createItem(data)
+            }]
+        });
+
+        menu.show();
+    });
+
+    function createItem(data) {
+        var round = data.round,
+            matches = data.matches,
+            i,
+            item,
+            items = [];
+
+        items.push({
+            title: 'Round ' + round
+        });
+
+        for (i in matches) {
+            item = matches[i];
+            items.push({
+                title: item.player.name + ':' + item.player.point,
+                subtitle: 'table: ' + item.table + ' / vs ' + item.opponent.name + ':' + item.opponent.point
             });
         }
 

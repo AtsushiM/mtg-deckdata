@@ -1,5 +1,6 @@
 var util = require('./util'),
     db = require('./db'),
+    fetch = require('./fetch_hareruya'),
     http = require('http'),
     express = require('express'),
     app = express(),
@@ -32,6 +33,68 @@ module.exports = {
         for (i in schema) {
             makeAPI(i);
         }
+
+        // onlinepairing
+        app.get('/harepairing', function(req, res) {
+            // var format = 'legacy';
+            var format = 'standard';
+
+            if (req.query.format) {
+                format = req.query.format;
+            }
+
+            fetch.onlinepairing(format, function($) {
+                var $p = $('p'),
+                    $lists = $('table tr'),
+                    matches = [],
+                    result = [],
+                    round = 'X',
+                    match,
+                    i;
+
+                // round数取得
+                $p.each(function() {
+                    var txt = $(this).text(),
+                        match = txt.match(/^Round ([0-9]+$)/);
+
+                    if (match) {
+                        round = match[1];
+                        return false;
+                    }
+                });
+
+                $lists.each(function() {
+                    var ret = [];
+                    $(this).find('td').each(function() {
+                        ret.push($(this).text());
+                    });
+                    matches.push(ret);
+                });
+
+                // 先頭はラベルなので削除
+                matches.shift();
+
+                for (i in matches) {
+                    match = matches[i];
+                    result.push({
+                        'table': match[0],
+                        'player': {
+                            'name': match[1],
+                            'point': match[2],
+                        },
+                        'opponent': {
+                            'name': match[3],
+                            'point': match[4],
+                        },
+                    });
+                }
+
+                res.json({
+                    'round': round,
+                    'matches': result
+                });
+            });
+        });
 
         // API起動
         http.createServer(app).listen(util.getPort());
