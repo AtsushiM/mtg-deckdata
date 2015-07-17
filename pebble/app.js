@@ -6,18 +6,10 @@ var UI = require('ui'),
 gmenu = new UI.Menu({
   sections: [{
     items: [
-      {
-        title: 'DecktypeCount'
-      },
-      {
-        title: 'UsedCard'
-      },
-      // {
-      //   title: 'DeckDetail'
-      // },
-      {
-        title: 'Tools'
-      },
+      { title: 'DecktypeCount' },
+      { title: 'UsedCard' },
+      // { title: 'DeckDetail' },
+      { title: 'Tools' },
     ]
   }]
 });
@@ -54,12 +46,14 @@ function actionDecktypeCount() {
 
     function createItem(data) {
         var i,
+            item,
             items = [];
 
         for (i in data) {
+            item = data[i];
             items.push({
-                title: data[i].name,
-                subtitle: 'count :' + data[i].count
+                title: item.name,
+                subtitle: item.count + '/' + item.highest_rank + '/' + item.encounter_rate
             });
         }
 
@@ -82,12 +76,8 @@ function actionUsedCard() {
             menu = new UI.Menu({
                 sections: [{
                     items: [
-                        {
-                            title: 'Mainboard'
-                        },
-                        {
-                            title: 'Sideboard'
-                        }
+                        { title: 'Mainboard' },
+                        { title: 'Sideboard' }
                     ]
                 }]
             });
@@ -133,12 +123,8 @@ function actionTools() {
         menu = new UI.Menu({
             sections: [{
                 items: [
-                    {
-                        title: 'Dice'
-                    },
-                    {
-                        title: 'LifeCounter'
-                    },
+                    { title: 'Dice' },
+                    { title: 'LifeCounter' },
                 ]
             }]
         }),
