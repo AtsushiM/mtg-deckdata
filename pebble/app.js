@@ -148,7 +148,7 @@ function actionHareruyaPairing() {
             item = matches[i];
             items.push({
                 title: item.player.name + ':' + item.player.point,
-                subtitle: 'table: ' + item.table + ' / vs ' + item.opponent.name + ':' + item.opponent.point
+                subtitle: 'no' + item.table + '/' + item.opponent.name + ':' + item.opponent.point
             });
         }
 

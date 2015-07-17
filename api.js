@@ -36,8 +36,7 @@ module.exports = {
 
         // onlinepairing
         app.get('/harepairing', function(req, res) {
-            // var format = 'legacy';
-            var format = 'standard';
+            var format = 'legacy';
 
             if (req.query.format) {
                 format = req.query.format;
