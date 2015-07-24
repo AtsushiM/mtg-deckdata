@@ -41,7 +41,7 @@ module.exports = {
                 tmp = decks[deck];
 
                 // ついでに平均順位を取得
-                tmp['average_rank'] = tmp['rank_total'] / tmp['count'];
+                tmp['average_rank'] = truncationDecimal(tmp['rank_total'] / tmp['count']);
 
                 // 最低がconfig.TOPDECKLIMITの為、count掛けしてtmp['rank_total']を引けば
                 // 相対的に順位が高かったデッキほどencounterの値が高くなる
