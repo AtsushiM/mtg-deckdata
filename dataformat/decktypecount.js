@@ -31,7 +31,7 @@ module.exports = {
 
                 decks[name]['count']++;
                 decks[name]['rank_total'] += tmp;
-                if (decks[name]['highest_rank'] < tmp) {
+                if (decks[name]['highest_rank'] > tmp) {
                     decks[name]['highest_rank'] = tmp;
                 }
             }
