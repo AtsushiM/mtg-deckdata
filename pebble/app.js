@@ -1,4 +1,5 @@
 var UI = require('ui'),
+    Vibe = require('ui/vibe'),
     ajax = require('ajax'),
     gmenu,
     is_request = false;
@@ -57,7 +58,7 @@ function actionDecktypeCount() {
             item = data[i];
             items.push({
                 title: item.name,
-                subtitle: item.count + '/' + item.highest_rank + '/' + item.encounter_rate
+                subtitle: ''item.count + '/' + item.average_rank + ':' + item.highest_rank + '/' + item.encounter_rate
             });
         }
 
@@ -125,13 +126,66 @@ function actionUsedCard() {
 function actionHareruyaPairing() {
     fetchData('harepairing', function(data) {
         var menu = new UI.Menu({
-            sections: [{
-                items: createItem(data)
-            }]
-        });
+                sections: [{
+                    items: createItem(data)
+                }]
+            }),
+            detail = new UI.Menu(),
+            _title;
 
         menu.show();
+
+        menu.on('select', function (e) {
+            _title = e.item.title;
+
+            updateDetail();
+            detail.show();
+        });
+
+        detail.on('select', function(e) {
+            switch (e.item.title) {
+                case 'Reload':
+                    fetchData('harepairing', function(newdata) {
+                        data = newdata;
+                        updateDetail();
+                    });
+                    break;
+            }
+        });
+
+        function updateDetail() {
+            var player = _title.split(':')[0],
+                match = findMatch(data, player);
+
+            detail.sections([{
+                items: [
+                    { title: 'Reload' },
+                    { title: 'Round:' + data.round },
+                    { title: 'Table:' + match.table },
+                    { title: player + ':' + match.player.point},
+                    { title: 'vs'},
+                    { title: match.opponent.name + ':' + match.opponent.point},
+                ]
+            }]);
+        }
     });
+
+    function findMatch(data, player) {
+        var matches = data.matches,
+            i,
+            match,
+            result = null;
+
+        for (i in matches) {
+            match = matches[i];
+            if (match.player.name == player) {
+                result = match;
+                break;
+            }
+        }
+
+        return result;
+    }
 
     function createItem(data) {
         var round = data.round,
@@ -212,6 +266,7 @@ function fetchData(dataname, action) {
         return false;
     }
 
+    Vibe.vibrate('short');
     is_request = true;
 
     ajax(

@@ -39,10 +39,16 @@ module.exports = {
             // 遭遇率を計算
             for (deck in decks) {
                 tmp = decks[deck];
+
+                // ついでに平均順位を取得
+                tmp['average_rank'] = tmp['rank_total'] / tmp['count'];
+
                 // 最低がconfig.TOPDECKLIMITの為、count掛けしてtmp['rank_total']を引けば
                 // 相対的に順位が高かったデッキほどencounterの値が高くなる
                 encounter = config.TOPDECKLIMIT * tmp['count'] - tmp['rank_total'];
 
+                // 平均順位でも補正を掛ける
+                encounter += Math.floor(encounter * (config.TOPDECKLIMIT - tmp['average_rank']));
                 // 最高順位でも補正を掛ける
                 encounter += Math.floor(encounter * (config.TOPDECKLIMIT - tmp['highest_rank']));
 
@@ -62,6 +68,7 @@ module.exports = {
                 alldecks.push({
                     'name': deck,
                     'count': tmp['count'],
+                    'average_rank' : tmp['average_rank'],
                     'highest_rank' : tmp['highest_rank'],
                     'encounter_rate': tmp['encounter_rate']
                 });
