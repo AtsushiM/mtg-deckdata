@@ -94,10 +94,13 @@ module.exports = {
             fetch.searchHistoryUseDeckLegacy(username, function($) {
                 var $titles = $('#deckSearchResult .deckBox .deckTitle'),
                     i,
-                    history = [];
+                    history = [],
+                    deckname = '';
 
                 $titles.each(function() {
-                    history.push($(this).text());
+                    deckname = $(this).text();
+                    deckname = deckname.split('/').pop();
+                    history.push(deckname);
                 });
 
                 res.json({
