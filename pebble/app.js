@@ -152,8 +152,8 @@ function actionHareruyaPairing() {
                 items,
                 i;
 
-            fetchData('usedeckhistroy?username=' + match.opponent.name, function(_data) {
-                var deckhistory = _data.deckhistory;
+            fetchData('usedeckhistroy?username=' + match.opponent.name, function(dataUseDecks) {
+                var deckhistory = dataUseDecks.deckhistory;
 
                 items = [
                     { title: 'Reload' },
@@ -165,13 +165,10 @@ function actionHareruyaPairing() {
                     { title: 'Opponent-Use-Decks' }
                 ];
 
-                if (deckhistory.length === 0) {
-                    items.push({ title: 'No Data' });
-                }
-                else {
-                    for (i in deckhistory) {
-                        items.push({ title: deckhistory[i] });
-                    }
+                console.log('usedeckhistroy?username=' + match.opponent.name, dataUseDecks.user);
+
+                for (i in deckhistory) {
+                    items.push({ title: deckhistory[i] });
                 }
 
                 detail.hide();

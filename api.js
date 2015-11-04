@@ -92,15 +92,20 @@ module.exports = {
             var username = req.query.username;
 
             fetch.searchHistoryUseDeckLegacy(username, function($) {
-                var $titles = $('#deckSearchResult .deckBox .deckTitle'),
+                var $boxs = $('#deckSearchResult .deckBox'),
                     i,
                     history = [],
                     deckname = '';
 
-                $titles.each(function() {
-                    deckname = $(this).text();
+                $boxs.each(function() {
+                    deckname = $(this).find('.deckTitle').text();
                     deckname = deckname.split('/').pop();
-                    history.push(deckname);
+                    date = $(this).find('.date').text();
+
+                    history.push({
+                        'name': deckname,
+                        'date': date
+                    });
                 });
 
                 res.json({
