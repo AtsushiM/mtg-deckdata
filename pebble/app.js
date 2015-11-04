@@ -9,9 +9,7 @@ gmenu = new UI.Menu({
     items: [
       { title: 'DecktypeCount' },
       { title: 'UsedCard' },
-      // { title: 'DeckDetail' },
       { title: 'HareruyaPairing' },
-      { title: 'Tools' },
     ]
   }]
 });
@@ -26,13 +24,8 @@ gmenu.on('select', function(e) {
       case 'UsedCard':
           actionUsedCard();
           break;
-      // case 'DeckDetail':
-      //     break;
       case 'HareruyaPairing':
           actionHareruyaPairing();
-          break;
-      case 'Tools':
-          actionTools();
           break;
   }
 
@@ -58,7 +51,7 @@ function actionDecktypeCount() {
             item = data[i];
             items.push({
                 title: item.name,
-                subtitle: ''item.count + '/' + item.average_rank + ':' + item.highest_rank + '/' + item.encounter_rate
+                subtitle: item.count + '/' + item.average_rank + ':' + item.highest_rank + '/' + item.encounter_rate
             });
         }
 
@@ -124,8 +117,9 @@ function actionUsedCard() {
 }
 
 function actionHareruyaPairing() {
-    fetchData('harepairing', function(data) {
-        var menu = new UI.Menu({
+    fetchData('harepairing', function(_data) {
+        var data = _data,
+            menu = new UI.Menu({
                 sections: [{
                     items: createItem(data)
                 }]
@@ -139,7 +133,6 @@ function actionHareruyaPairing() {
             _title = e.item.title;
 
             updateDetail();
-            detail.show();
         });
 
         detail.on('select', function(e) {
@@ -157,6 +150,7 @@ function actionHareruyaPairing() {
             var player = _title.split(':')[0],
                 match = findMatch(data, player);
 
+            detail.hide();
             detail.sections([{
                 items: [
                     { title: 'Reload' },
@@ -167,6 +161,7 @@ function actionHareruyaPairing() {
                     { title: match.opponent.name + ':' + match.opponent.point},
                 ]
             }]);
+            detail.show();
         }
     });
 
@@ -207,57 +202,6 @@ function actionHareruyaPairing() {
         }
 
         return items;
-    }
-}
-
-function actionTools() {
-    var lifenum = 20,
-        menu = new UI.Menu({
-            sections: [{
-                items: [
-                    { title: 'Dice' },
-                    { title: 'LifeCounter' },
-                ]
-            }]
-        }),
-        dice = new UI.Card({
-            title: '1 - 1'
-        }),
-        life = new UI.Card({
-            title: lifenum
-        });
-
-    dice.on('click', 'select', function (e) {
-        dice.title('' + getDiceRand() + ' - ' + getDiceRand());
-    });
-
-    life.on('click', 'select', function (e) {
-        lifenum = 20;
-        life.title(lifenum);
-    });
-    life.on('click', 'up', function (e) {
-        lifenum++;
-        life.title(lifenum);
-    });
-    life.on('click', 'down', function (e) {
-        lifenum--;
-        life.title(lifenum);
-    });
-
-    menu.on('select', function (e) {
-        switch (e.item.title) {
-            case 'Dice':
-                dice.show();
-                break;
-            case 'LifeCounter':
-                life.show();
-                break;
-        }
-    });
-    menu.show();
-
-    function getDiceRand() {
-        return Math.floor(Math.random() * 6 + 1);
     }
 }
 

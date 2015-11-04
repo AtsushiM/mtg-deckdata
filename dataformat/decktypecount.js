@@ -14,7 +14,12 @@ module.exports = {
                 decks = [],
                 alldecks = storage.get('decklists').decks,
                 encounter = 0,
-                encounter_max = 0;
+                encounter_max = 0,
+                dt = new Date(),
+                nowtime = dt.getTime(),
+                span_week1 = 7 * 24 * 60 * 60 * 1000,
+                span_week2 = span_week1 * 2,
+                span_week3 = span_week1 * 3;
 
             // 集計
             for (deck in alldecks) {
@@ -47,10 +52,13 @@ module.exports = {
                 // 相対的に順位が高かったデッキほどencounterの値が高くなる
                 encounter = config.TOPDECKLIMIT * tmp['count'] - tmp['rank_total'];
 
-                // 平均順位でも補正を掛ける
-                encounter += Math.floor(encounter * (config.TOPDECKLIMIT - tmp['average_rank']));
-                // 最高順位でも補正を掛ける
-                encounter += Math.floor(encounter * (config.TOPDECKLIMIT - tmp['highest_rank']));
+                // 平均順位と最高順位でも補正を掛ける
+                encounter = encount
+                    + Math.floor(encounter * (config.TOPDECKLIMIT - tmp['average_rank']) / 0.5)
+                    + Math.floor(encounter * (config.TOPDECKLIMIT - tmp['highest_rank']) / 0.5);
+
+                // ベースはcountで他の数値を低めにする
+                encounter = tmp['count'] + encounter / 10;
 
                 encounter_max += encounter;
                 tmp['encounter_rate'] = encounter;

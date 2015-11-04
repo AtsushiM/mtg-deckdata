@@ -36,13 +36,7 @@ module.exports = {
 
         // onlinepairing
         app.get('/harepairing', function(req, res) {
-            var format = 'legacy';
-
-            if (req.query.format) {
-                format = req.query.format;
-            }
-
-            fetch.onlinepairing(format, function($) {
+            fetch.onlinepairingLegacy(function($) {
                 var $p = $('p'),
                     $lists = $('table tr'),
                     matches = [],
@@ -91,6 +85,24 @@ module.exports = {
                 res.json({
                     'round': round,
                     'matches': result
+                });
+            });
+        });
+        app.get('/usedeckhistroy', function(req, res) {
+            var username = req.query.username;
+
+            fetch.searchHistoryUseDeckLegacy(username, function($) {
+                var $titles = $('#deckSearchResult .deckBox .deckTitle'),
+                    i,
+                    history = [];
+
+                $titles.each(function() {
+                    history.push($(this).text());
+                });
+
+                res.json({
+                    'user': username,
+                    'deckhistory': history
                 });
             });
         });
