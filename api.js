@@ -72,11 +72,11 @@ module.exports = {
                     result.push({
                         'table': match[0],
                         'player': {
-                            'name': match[1].replace(',', ' '),
+                            'name': match[1].replace(', ', ' '),
                             'point': match[2],
                         },
                         'opponent': {
-                            'name': match[3].replace(',', ' '),
+                            'name': match[3].replace(', ', ' '),
                             'point': match[4],
                         },
                     });

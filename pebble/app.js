@@ -165,10 +165,10 @@ function actionHareruyaPairing() {
                     { title: 'Opponent-Use-Decks' }
                 ];
 
-                console.log('usedeckhistroy?username=' + match.opponent.name, dataUseDecks.user);
+                console.log('usedeckhistroy?username=' + match.opponent.name, JSON.stringify(dataUseDecks));
 
                 for (i in deckhistory) {
-                    items.push({ title: deckhistory[i] });
+                    items.push({ title: deckhistory[i].name });
                 }
 
                 detail.hide();
