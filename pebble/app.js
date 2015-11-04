@@ -148,20 +148,38 @@ function actionHareruyaPairing() {
 
         function updateDetail() {
             var player = _title.split(':')[0],
-                match = findMatch(data, player);
+                match = findMatch(data, player),
+                items,
+                i;
 
-            detail.hide();
-            detail.sections([{
-                items: [
+            fetchData('usedeckhistroy?username=' + match.opponent.name, function(_data) {
+                var deckhistory = _data.deckhistory;
+
+                items = [
                     { title: 'Reload' },
                     { title: 'Round:' + data.round },
                     { title: 'Table:' + match.table },
                     { title: player + ':' + match.player.point},
                     { title: 'vs'},
                     { title: match.opponent.name + ':' + match.opponent.point},
-                ]
-            }]);
-            detail.show();
+                    { title: 'Opponent-Use-Decks' }
+                ];
+
+                if (deckhistory.length === 0) {
+                    items.push({ title: 'No Data' });
+                }
+                else {
+                    for (i in deckhistory) {
+                        items.push({ title: deckhistory[i] });
+                    }
+                }
+
+                detail.hide();
+                detail.sections([{
+                    items: items
+                }]);
+                detail.show();
+            });
         }
     });
 
