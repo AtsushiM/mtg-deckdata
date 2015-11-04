@@ -9,6 +9,7 @@ module.exports = {
     },
     searchHistoryUseDeckLegacy: function(username, done) {
         client.fetch("www.hareruyamtg.com/jp/deck/search.aspx?format=Legacy&date_format=Legacy+-+Archive&archetype=&releasedt_type=1&min_releasedt=&max_releasedt=&player=" + username + "&name_je=&name_je_type=2&search.x=submit", {}, function (err, $, res) {
+            console.log(err, $, res);
             done($);
         });
     }

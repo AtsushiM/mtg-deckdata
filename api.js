@@ -92,19 +92,18 @@ module.exports = {
             var username = req.query.username;
 
             fetch.searchHistoryUseDeckLegacy(username, function($) {
-                console.log($);
-                // var $titles = $('#deckSearchResult .deckBox .deckTitle'),
-                //     i,
-                //     history = [];
-                //
-                // $titles.each(function() {
-                //     history.push($(this).text());
-                // });
-                //
-                // res.json({
-                //     'user': username,
-                //     'deckhistory': history
-                // });
+                var $titles = $('#deckSearchResult .deckBox .deckTitle'),
+                    i,
+                    history = [];
+
+                $titles.each(function() {
+                    history.push($(this).text());
+                });
+
+                res.json({
+                    'user': username,
+                    'deckhistory': history
+                });
             });
         });
 
