@@ -53,7 +53,7 @@ module.exports = {
                 encounter = config.TOPDECKLIMIT * tmp['count'] - tmp['rank_total'];
 
                 // 平均順位と最高順位でも補正を掛ける
-                encounter = encount
+                encounter = encounter
                     + Math.floor(encounter * (config.TOPDECKLIMIT - tmp['average_rank']) / 0.5)
                     + Math.floor(encounter * (config.TOPDECKLIMIT - tmp['highest_rank']) / 0.5);
 
