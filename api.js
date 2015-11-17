@@ -105,7 +105,7 @@ module.exports = {
                         'name': deckname,
                         'date': $(this).find('.date').text(),
                         'tournament': $(this).find('.tournament').text(),
-                        'link': 'http://www.hareruyamtg.com/' + $(this).parent().attr('href').text()
+                        'link': 'http://www.hareruyamtg.com/' + $(this).parent().attr('href')
                     });
                 });
 
