@@ -100,11 +100,12 @@ module.exports = {
                 $boxs.each(function() {
                     deckname = $(this).find('.deckTitle').text();
                     deckname = deckname.split('/').pop();
-                    date = $(this).find('.date').text();
 
                     history.push({
                         'name': deckname,
-                        'date': date
+                        'date': $(this).find('.date').text(),
+                        'tournament': $(this).find('.tournament').text(),
+                        'link': 'http://www.hareruyamtg.com/'.$(this).parent().attr('href').text()
                     });
                 });
 
