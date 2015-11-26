@@ -28,9 +28,8 @@ module.exports = {
         return process.env.PORT || 3000;
     },
     makeDateSpan: function(date) {
-        var now = makeDate(date);
+        var now = makeDate(date),
             before_1month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
 
         return {
             start: makeStringDate(before_1month),
@@ -58,7 +57,7 @@ module.exports = {
         // round数取得
         $p.each(function() {
             var txt = $(this).text(),
-                match = txt.match(/^Round ([0-9]+$)/);
+                match = txt.match(/^Round ([0-9]+)/);
 
             if (match) {
                 round = match[1];
