@@ -35,57 +35,16 @@ module.exports = {
         }
 
         // onlinepairing
-        app.get('/harepairing', function(req, res) {
-            fetch.onlinepairingLegacy(function($) {
-                var $p = $('p'),
-                    $lists = $('table tr'),
-                    matches = [],
-                    result = [],
-                    round = 'X',
-                    match,
-                    i;
+        app.get('/onlinepairinglist', function(req, res) {
+            fetch.onlinepairingList(function($) {
+                console.log($('#main .body').text());
+            });
+        });
+        app.get('/onlinepairing', function(req, res) {
+            var path = req.query.path;
 
-                // round数取得
-                $p.each(function() {
-                    var txt = $(this).text(),
-                        match = txt.match(/^Round ([0-9]+$)/);
-
-                    if (match) {
-                        round = match[1];
-                        return false;
-                    }
-                });
-
-                $lists.each(function() {
-                    var ret = [];
-                    $(this).find('td').each(function() {
-                        ret.push($(this).text());
-                    });
-                    matches.push(ret);
-                });
-
-                // 先頭はラベルなので削除
-                matches.shift();
-
-                for (i in matches) {
-                    match = matches[i];
-                    result.push({
-                        'table': match[0],
-                        'player': {
-                            'name': match[1].replace(', ', ' '),
-                            'point': match[2],
-                        },
-                        'opponent': {
-                            'name': match[3].replace(', ', ' '),
-                            'point': match[4],
-                        },
-                    });
-                }
-
-                res.json({
-                    'round': round,
-                    'matches': result
-                });
+            fetch.onlinepairing(path, function($) {
+                res.json(util.parseOnlinePairing($));
             });
         });
         app.get('/usedeckhistroy', function(req, res) {
@@ -105,7 +64,7 @@ module.exports = {
                         'name': deckname,
                         'date': $(this).find('.date').text(),
                         'tournament': $(this).find('.tournament').text(),
-                        'link': 'http://www.hareruyamtg.com/' + $(this).parent().attr('href')
+                        'link': 'http://www.hareruyamtg.com' + $(this).parent().attr('href')
                     });
                 });
 
