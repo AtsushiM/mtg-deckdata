@@ -37,7 +37,20 @@ module.exports = {
         // onlinepairing
         app.get('/onlinepairinglist', function(req, res) {
             fetch.onlinepairingList(function($) {
-                console.log($('#main .body').text());
+                var lists = $('#main .body').text().split(','),
+                    i,
+                    tmp,
+                    result = [];
+
+                for (i in lists) {
+                    tmp = lists[i].split(':');
+                    result.push({
+                        'name': tmp[0],
+                        'url': tmp[1]
+                    });
+                }
+
+                res.json(result);
             });
         });
         app.get('/onlinepairing', function(req, res) {
