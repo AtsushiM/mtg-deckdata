@@ -50,7 +50,9 @@ module.exports = {
                     });
                 }
 
-                res.json(result);
+                res.json({
+                    'pairing': result
+                });
             });
         });
         app.get('/onlinepairing', function(req, res) {

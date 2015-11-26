@@ -9,7 +9,7 @@ gmenu = new UI.Menu({
     items: [
       { title: 'DecktypeCount' },
       { title: 'UsedCard' },
-      { title: 'HareruyaPairing' },
+      { title: 'OnlinepairingList' },
     ]
   }]
 });
@@ -24,8 +24,8 @@ gmenu.on('select', function(e) {
       case 'UsedCard':
           actionUsedCard();
           break;
-      case 'HareruyaPairing':
-          actionHareruyaPairing();
+      case 'OnlinepairingList':
+          actionOnlinepairingList();
           break;
   }
 
@@ -116,8 +116,39 @@ function actionUsedCard() {
     }
 }
 
-function actionHareruyaPairing() {
-    fetchData('harepairing', function(_data) {
+function actionOnlinepairingList() {
+    fetchData('onlinepairingList', function(data) {
+        var menu = new UI.Menu({
+                sections: [{
+                    items: createItem(data)
+                }]
+            });
+
+        menu.on('select', function (e) {
+            actionOnlinepairing(e.item.subtitle);
+        });
+    });
+
+    function createItem(data) {
+        console.log(data);
+        var i,
+            items = [];
+
+        for (i in data) {
+            target = data[i];
+
+            items.push({
+                title: target.name,
+                subtitle: target.url
+            });
+        }
+
+        return items;
+    }
+}
+
+function actionOnlinepairing(path) {
+    fetchData('onlinepairing?path=' + path, function(_data) {
         var data = _data,
             menu = new UI.Menu({
                 sections: [{
