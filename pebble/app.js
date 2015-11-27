@@ -187,7 +187,7 @@ function actionOnlinepairing(path) {
                 items,
                 i;
 
-            fetchData('usedeckhistroy?username=' + match.opponent.name, function(dataUseDecks) {
+            fetchData('usedeckhistroy?format=Legacy&username=' + match.opponent.name, function(dataUseDecks) {
                 var deckhistory = dataUseDecks.deckhistory;
 
                 items = [
