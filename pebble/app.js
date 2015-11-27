@@ -125,7 +125,7 @@ function actionOnlinepairingList() {
             });
 
         menu.on('select', function (e) {
-            actionOnlinepairing(e.item.subtitle);
+            actionOnlinepairing(e.item.body, e.item.format);
         });
 
         menu.show();
@@ -141,7 +141,8 @@ function actionOnlinepairingList() {
 
             items.push({
                 title: target.name,
-                subtitle: target.url
+                subtitle: target.format
+                body: target.url,
             });
         }
 
@@ -149,8 +150,8 @@ function actionOnlinepairingList() {
     }
 }
 
-function actionOnlinepairing(path) {
-    var op = 'onlinepairing?path=' + path;
+function actionOnlinepairing(path, format) {
+    var op = 'onlinepairing?path=' + path + '&format=' + format;
 
     fetchData(op, function(_data) {
         var data = _data,

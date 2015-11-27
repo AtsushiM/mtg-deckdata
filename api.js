@@ -50,7 +50,8 @@ module.exports = {
                     tmp = lists[i].split(':');
                     result.push({
                         'name': tmp[0],
-                        'url': tmp[1] + ':' + tmp[2]
+                        'format': tmp[1],
+                        'url': tmp[2] + ':' + tmp[3]
                     });
                 }
 
