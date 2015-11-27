@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Custom Pairing</title>
+<script src="cir.js"></script>
+<link rel="stylesheet" media="all" href="custompairing.css">
+</head>
+<body>
+<h1>Custom Pairing</h1>
+<div id="view">Now Loading...</div>
+<div id="form">
+    <form action="./custompairing.html">
+        <table>
+            <tr>
+                <th>Player Name</th>
+                <td><input type="text" name="name" value="" /></td>
+            </tr>
+            <tr>
+                <th>OnlinePairing URL</th>
+                <td><input type="text" name="path" value="" /></td>
+            </tr>
+        </table>
+        <p><input type="submit" value="create CustomPairing"></p>
+    </form>
+</div>
+<script type="text/template" id="pairing-base">
+    <section>
+        <h2>Round: <%= round %></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Table</th>
+                    <th>Opponent</th>
+                    <th>Point</th>
+                    <th>You</th>
+                    <th>Point</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><%= table %></td>
+                    <td><%= opponent_name %></td>
+                    <td><%= opponent_point %></td>
+                    <td><%= player_name %></td>
+                    <td><%= player_point %></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Opponent Deck-History</h2>
+        <ul><%= deck_histroy %></ul>
+    </section>
+</script>
+<script type="text/template" id="deck-history">
+    <li>
+        <table>
+            <tr>
+                <th>Deck</th>
+                <td><%= name %></td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td><%= date %></td>
+            </tr>
+            <tr>
+                <th>Tournament</th>
+                <td><%= tournament %></td>
+            </tr>
+            <tr>
+                <th>Link</th>
+                <td><a href="<%= link %>"><%= link %></a></td>
+            </tr>
+        </table>
+    </li>
+</script>
+<script src="op.js"></script>
+</body>
+</html>

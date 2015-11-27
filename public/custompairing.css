@@ -1,0 +1,50 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+table tr:nth-child(2n) {    /* 偶数行 */
+    background-color: white;
+}
+table tr:nth-child(2n+1) {  /* 奇数行 */
+    background-color: #e0e0e0;
+}
+table thead tr:nth-child(1) {     /* 先頭行のみ */
+    background-color: black;
+    color: white;
+}
+table td,th {
+    padding: 5px;
+}
+
+table td {
+    min-width: 3em;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table tr {
+    border-width: 0px 0px 1px 0px;
+    border-style: solid;
+    border-color: black;
+}
+
+table td {
+    min-width: 3em;
+}
+
+section {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+li {
+    padding: 5px 0;
+    border-top: 1px solid #ccc;
+    list-style-type: none;
+}
+
+#form {
+    display: none;
+}
