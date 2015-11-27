@@ -9,10 +9,11 @@
   "author": "Atsushi-Mizoue",
   "license": "MIT",
   "dependencies": {
-    "cheerio-httpcli":"*",
-    "mocky":"*",
-    "express":"*",
-    "ejs":"*",
-    "mongoose":"*"
+    "cheerio-httpcli": "*",
+    "mocky": "*",
+    "express": "*",
+    "ejs": "*",
+    "mongoose": "*",
+    "corser": "^2.0.0"
   }
 }

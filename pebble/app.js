@@ -120,22 +120,24 @@ function actionOnlinepairingList() {
     fetchData('onlinepairingList', function(data) {
         var menu = new UI.Menu({
                 sections: [{
-                    items: createItem(data)
+                    items: createItem(data.pairing)
                 }]
             });
 
         menu.on('select', function (e) {
             actionOnlinepairing(e.item.subtitle);
         });
+
+        menu.show();
     });
 
     function createItem(data) {
-        console.log(data);
         var i,
             items = [];
 
         for (i in data) {
             target = data[i];
+            console.log(target.name);
 
             items.push({
                 title: target.name,
@@ -148,7 +150,9 @@ function actionOnlinepairingList() {
 }
 
 function actionOnlinepairing(path) {
-    fetchData('onlinepairing?path=' + path, function(_data) {
+    var op = 'onlinepairing?path=' + path;
+
+    fetchData(op, function(_data) {
         var data = _data,
             menu = new UI.Menu({
                 sections: [{
@@ -169,7 +173,7 @@ function actionOnlinepairing(path) {
         detail.on('select', function(e) {
             switch (e.item.title) {
                 case 'Reload':
-                    fetchData('harepairing', function(newdata) {
+                    fetchData(op, function(newdata) {
                         data = newdata;
                         updateDetail();
                     });

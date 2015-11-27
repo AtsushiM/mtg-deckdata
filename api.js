@@ -3,8 +3,11 @@ var util = require('./util'),
     fetch = require('./fetch_hareruya'),
     http = require('http'),
     express = require('express'),
+    corser = require('corser'),
     app = express(),
     storage;
+
+app.use(corser.create());
 
 function makeAPI(name) {
     app.get('/' + name, function(req, res) {
