@@ -8,7 +8,7 @@ var util = require('./util'),
     storage;
 
 app.use(corser.create());
-app.use(express.static('publi'));
+app.use(express.static('public'));
 
 function makeAPI(name) {
     app.get('/' + name, function(req, res) {
