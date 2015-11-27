@@ -67,9 +67,10 @@ module.exports = {
             });
         });
         app.get('/usedeckhistroy', function(req, res) {
-            var username = req.query.username;
+            var username = req.query.username,
+                format = req.query.format;
 
-            fetch.searchHistoryUseDeckLegacy(username, function($) {
+            fetch.searchHistoryUseDeckLegacy(username, format, function($) {
                 var $boxs = $('#deckSearchResult .deckBox'),
                     i,
                     history = [],
