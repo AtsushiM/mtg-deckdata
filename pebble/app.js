@@ -1,4 +1,5 @@
 var UI = require('ui'),
+    Vibe = require('ui/vibe'),
     ajax = require('ajax'),
     gmenu,
     is_request = false;
@@ -6,18 +7,9 @@ var UI = require('ui'),
 gmenu = new UI.Menu({
   sections: [{
     items: [
-      {
-        title: 'DecktypeCount'
-      },
-      {
-        title: 'UsedCard'
-      },
-      // {
-      //   title: 'DeckDetail'
-      // },
-      {
-        title: 'Tools'
-      },
+      { title: 'DecktypeCount' },
+      { title: 'UsedCard' },
+      { title: 'OnlinepairingList' },
     ]
   }]
 });
@@ -25,7 +17,6 @@ gmenu = new UI.Menu({
 gmenu.show();
 
 gmenu.on('select', function(e) {
-             console.log(e.item.title);
   switch (e.item.title) {
       case 'DecktypeCount':
           actionDecktypeCount();
@@ -33,10 +24,8 @@ gmenu.on('select', function(e) {
       case 'UsedCard':
           actionUsedCard();
           break;
-      // case 'DeckDetail':
-      //     break;
-      case 'Tools':
-          actionTools();
+      case 'OnlinepairingList':
+          actionOnlinepairingList();
           break;
   }
 
@@ -55,12 +44,14 @@ function actionDecktypeCount() {
 
     function createItem(data) {
         var i,
+            item,
             items = [];
 
         for (i in data) {
+            item = data[i];
             items.push({
-                title: data[i].name,
-                subtitle: 'count :' + data[i].count
+                title: item.name,
+                subtitle: item.count + '/' + item.average_rank + ':' + item.highest_rank + '/' + item.encounter_rate
             });
         }
 
@@ -83,12 +74,8 @@ function actionUsedCard() {
             menu = new UI.Menu({
                 sections: [{
                     items: [
-                        {
-                            title: 'Mainboard'
-                        },
-                        {
-                            title: 'Sideboard'
-                        }
+                        { title: 'Mainboard' },
+                        { title: 'Sideboard' }
                     ]
                 }]
             });
@@ -109,12 +96,19 @@ function actionUsedCard() {
 
     function createItem(data) {
         var i,
-            items = [];
+            items = [],
+            target,
+            indeck;
 
         for (i in data) {
+            target = data[i];
+            indeck = target.indeck;
+
             items.push({
-                title: data[i].name,
-                subtitle: data[i].adoption_rate + ':' + data[i].count
+                title: target.name,
+                subtitle: target.encounter_rate + ':' + target.adopotion_average + '/' +
+                    indeck.use1 + '|' + indeck.use2 + '|' + indeck.use3 + '|' + indeck.use4 + '/' +
+                    target.count
             });
         }
 
@@ -122,58 +116,144 @@ function actionUsedCard() {
     }
 }
 
-function actionTools() {
-    var lifenum = 20,
-        menu = new UI.Menu({
-            sections: [{
-                items: [
-                    {
-                        title: 'Dice'
-                    },
-                    {
-                        title: 'LifeCounter'
-                    },
-                ]
-            }]
-        }),
-        dice = new UI.Card({
-            title: '1 - 1'
-        }),
-        life = new UI.Card({
-            title: lifenum
+function actionOnlinepairingList() {
+    fetchData('onlinepairingList', function(data) {
+        var menu = new UI.Menu({
+                sections: [{
+                    items: createItem(data.pairing)
+                }]
+            });
+
+        menu.on('select', function (e) {
+            actionOnlinepairing(e.item.body, e.item.format);
         });
 
-    dice.on('click', 'select', function (e) {
-        dice.title('' + getDiceRand() + ' - ' + getDiceRand());
+        menu.show();
     });
 
-    life.on('click', 'select', function (e) {
-        lifenum = 20;
-        life.title(lifenum);
-    });
-    life.on('click', 'up', function (e) {
-        lifenum++;
-        life.title(lifenum);
-    });
-    life.on('click', 'down', function (e) {
-        lifenum--;
-        life.title(lifenum);
-    });
+    function createItem(data) {
+        var i,
+            items = [];
 
-    menu.on('select', function (e) {
-        switch (e.item.title) {
-            case 'Dice':
-                dice.show();
-                break;
-            case 'LifeCounter':
-                life.show();
-                break;
+        for (i in data) {
+            target = data[i];
+            console.log(target.name);
+
+            items.push({
+                title: target.name,
+                subtitle: target.format
+                body: target.url,
+            });
+        }
+
+        return items;
+    }
+}
+
+function actionOnlinepairing(path, format) {
+    var op = 'onlinepairing?path=' + path + '&format=' + format;
+
+    fetchData(op, function(_data) {
+        var data = _data,
+            menu = new UI.Menu({
+                sections: [{
+                    items: createItem(data)
+                }]
+            }),
+            detail = new UI.Menu(),
+            _title;
+
+        menu.show();
+
+        menu.on('select', function (e) {
+            _title = e.item.title;
+
+            updateDetail();
+        });
+
+        detail.on('select', function(e) {
+            switch (e.item.title) {
+                case 'Reload':
+                    fetchData(op, function(newdata) {
+                        data = newdata;
+                        updateDetail();
+                    });
+                    break;
+            }
+        });
+
+        function updateDetail() {
+            var player = _title.split(':')[0],
+                match = findMatch(data, player),
+                items,
+                i;
+
+            fetchData('usedeckhistroy?format=Legacy&username=' + match.opponent.name, function(dataUseDecks) {
+                var deckhistory = dataUseDecks.deckhistory;
+
+                items = [
+                    { title: 'Reload' },
+                    { title: 'Round:' + data.round },
+                    { title: 'Table:' + match.table },
+                    { title: player + ':' + match.player.point},
+                    { title: 'vs'},
+                    { title: match.opponent.name + ':' + match.opponent.point},
+                    { title: 'Opponent-Use-Decks' }
+                ];
+
+                for (i in deckhistory) {
+                    items.push({
+                        title: deckhistory[i].name,
+                        subtitle: deckhistory[i].date
+                    });
+                }
+
+                detail.hide();
+                detail.sections([{
+                    items: items
+                }]);
+                detail.show();
+            });
         }
     });
-    menu.show();
 
-    function getDiceRand() {
-        return Math.floor(Math.random() * 6 + 1);
+    function findMatch(data, player) {
+        var matches = data.matches,
+            i,
+            match,
+            result = null;
+
+        for (i in matches) {
+            match = matches[i];
+            if (match.player.name == player) {
+                result = match;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    function createItem(data) {
+        var round = data.round,
+            matches = data.matches,
+            i,
+            item,
+            items = [];
+
+        items.push({
+            title: 'Round ' + round
+        });
+
+        for (i in matches) {
+            item = matches[i];
+            items.push({
+                title: item.player.name + ':' + item.player.point,
+                subtitle: 'no' + item.table + '/' + item.opponent.name + ':' + item.opponent.point
+            });
+        }
+
+        return items;
     }
 }
 
@@ -182,6 +262,7 @@ function fetchData(dataname, action) {
         return false;
     }
 
+    Vibe.vibrate('short');
     is_request = true;
 
     ajax(

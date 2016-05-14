@@ -19,7 +19,7 @@ function _contupUseCards(key, ary) {
                     use2: 0,
                     use3: 0,
                     use4: 0,
-                    use4Over: 0
+                    use5Over: 0
                 }
             };
         }
@@ -51,21 +51,35 @@ function updateUseCardCount(deckcount) {
     console.log('update: UseCards');
 }
 
+function truncationDecimal(num) {
+    return Math.round(num * 100) / 100;
+}
+
 function _sortUseCards(key, deckcount) {
-    var i,
+    var i, j,
         cards = [],
         count,
         target,
+        indeck,
+        usedeckcount,
         workusecards = storage.get('__usecards');
 
     // sortのため配列形式の変更
     for (i in workusecards[key]) {
         target = workusecards[key][i];
         count = target['count'];
+        indeck = target['indeck'];
+        usedeckcount = 0;
+
+        for (j in indeck) {
+            usedeckcount += indeck[j];
+        }
+
         cards.push({
             'name': i,
             'count': count,
-            'adoption_rate': Math.round((count / deckcount) * 100) / 100,
+            'encounter_rate': truncationDecimal(count / deckcount),
+            'adopotion_average': truncationDecimal(count / usedeckcount),
             'indeck': target['indeck']
         });
     }
