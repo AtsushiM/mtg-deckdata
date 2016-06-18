@@ -33,12 +33,17 @@
         </table>
         <p><input type="submit" value="create CustomPairing"></p>
     </form>
+    <section>
+        <h2>Battle log</h2>
+        <ul>
+            <li><a href="http://mtg-battle-log.herokuapp.com/tournaments/new" target="_blank">+ New Tournament</a></li>
+        </ul>
+    </section>
 </div>
 <script type="text/template" id="pairing-base">
     <section>
         <h2>Battle Log</h2>
         <ul>
-            <li><a href="http://mtg-battle-log.herokuapp.com/tournaments/new" target="_blank">+ New Tournament</a></li>
             <li><a href="http://mtg-battle-log.herokuapp.com/tournaments/latest/rounds/new?no=<%= round %>&opponent_name=<%= opponent_name %>&opponent_deck_latest=<%= opponent_deck_latest %>" target="_blank">+ Add Round for <%= opponent_name %></a></li>
         </ul>
     </section>
