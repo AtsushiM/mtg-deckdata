@@ -45,7 +45,7 @@
                         store += C.template(deckHistory, data.deckhistory[i]);
 
                         if (opponent_deck_latest === '') {
-                            opponent_deck_latest = data.deckhistory.name;
+                            opponent_deck_latest = data.deckhistory[i].name;
                         }
                     }
 
