@@ -38,10 +38,15 @@
                 oncomplete: function(data) {
                     console.log(data);
                     var store = '',
-                        i;
+                        i,
+                        opponent_deck_latest = '';
 
                     for (i in data.deckhistory) {
                         store += C.template(deckHistory, data.deckhistory[i]);
+
+                        if (opponent_deck_latest === '') {
+                            opponent_deck_latest = data.deckhistory.name;
+                        }
                     }
 
                     $view.html(C.template(pairingBase, {
@@ -49,6 +54,7 @@
                         table: match.table,
                         opponent_name: match.opponent.name,
                         opponent_point: match.opponent.point,
+                        opponent_deck_latest: opponent_deck_latest,
                         player_name: match.player.name,
                         player_point: match.player.point,
                         deck_histroy: store

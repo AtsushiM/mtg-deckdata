@@ -10,6 +10,7 @@ gmenu = new UI.Menu({
       { title: 'DecktypeCount' },
       { title: 'UsedCard' },
       { title: 'OnlinepairingList' },
+      { title: '+NewTournament' },
     ]
   }]
 });
@@ -26,6 +27,9 @@ gmenu.on('select', function(e) {
           break;
       case 'OnlinepairingList':
           actionOnlinepairingList();
+          break;
+      case '+NewTournament':
+          Pebble.openURL('http://mtg-battle-log.herokuapp.com/tournaments/new');
           break;
   }
 
@@ -125,7 +129,7 @@ function actionOnlinepairingList() {
             });
 
         menu.on('select', function (e) {
-            actionOnlinepairing(e.item.body, e.item.format);
+            actionOnlinepairing(e.item.body, e.item.subtitle);
         });
 
         menu.show();
@@ -133,16 +137,16 @@ function actionOnlinepairingList() {
 
     function createItem(data) {
         var i,
-            items = [];
+            items = [],
+            target;
 
         for (i in data) {
             target = data[i];
-            console.log(target.name);
 
             items.push({
                 title: target.name,
-                subtitle: target.format
-                body: target.url,
+                subtitle: target.format,
+                body: target.url
             });
         }
 
@@ -161,7 +165,8 @@ function actionOnlinepairing(path, format) {
                 }]
             }),
             detail = new UI.Menu(),
-            _title;
+            _title,
+            _latest_deckname;
 
         menu.show();
 
@@ -179,6 +184,13 @@ function actionOnlinepairing(path, format) {
                         updateDetail();
                     });
                     break;
+                case '+NewRound':
+                    Pebble.openURL('http://mtg-battle-log.herokuapp.com/tournaments/latest/rounds/new' +
+                        '?no=' + data.round  +
+                        '&opponent_name=' + _title.split(':')[0] +
+                        '&opponent_deck=' + _latest_deckname
+                    );
+                    break;
             }
         });
 
@@ -188,7 +200,7 @@ function actionOnlinepairing(path, format) {
                 items,
                 i;
 
-            fetchData('usedeckhistroy?format=Legacy&username=' + match.opponent.name, function(dataUseDecks) {
+            fetchData('usedeckhistroy?username=' + match.opponent.name + '&format=' + format, function(dataUseDecks) {
                 var deckhistory = dataUseDecks.deckhistory;
 
                 items = [
@@ -198,14 +210,20 @@ function actionOnlinepairing(path, format) {
                     { title: player + ':' + match.player.point},
                     { title: 'vs'},
                     { title: match.opponent.name + ':' + match.opponent.point},
+                    { title: '+NewRound' },
                     { title: 'Opponent-Use-Decks' }
                 ];
 
+                _latest_deckname = '';
                 for (i in deckhistory) {
                     items.push({
                         title: deckhistory[i].name,
                         subtitle: deckhistory[i].date
                     });
+
+                    if (_latest_deckname === '') {
+                        _latest_deckname = deckhistory[i].name;
+                    }
                 }
 
                 detail.hide();
@@ -257,9 +275,13 @@ function actionOnlinepairing(path, format) {
     }
 }
 
-function fetchData(dataname, action) {
+function fetchData(dataname, action, query) {
     if (is_request === true) {
         return false;
+    }
+
+    if (!query) {
+        query = {};
     }
 
     Vibe.vibrate('short');
@@ -268,7 +290,8 @@ function fetchData(dataname, action) {
     ajax(
         {
             url: 'https://mtg-deckdata.herokuapp.com/' + dataname,
-            type: 'json'
+            type: 'json',
+            data: query
         },
         function(data, status, request) {
             is_request = false;
