@@ -2,7 +2,7 @@
     var query = C.util.parseQueryString(document.location.search);
 
     if (query.path && query.name && query.format) {
-        query.name = query.name.replace('+', ' ');
+        query.name = query.name.replace('/(%2C|\+|\s)+/', ' ');
         new C.Ajax({
             url: 'http://mtg-deckdata.herokuapp.com/onlinepairing?path=' + query.path,
             dataType: 'json',
