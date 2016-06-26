@@ -10,6 +10,7 @@ gmenu = new UI.Menu({
       { title: 'DecktypeCount' },
       { title: 'UsedCard' },
       { title: 'OnlinepairingList' },
+      { title: 'Statistics' },
       { title: '+NewTournament' },
     ]
   }]
@@ -27,6 +28,9 @@ gmenu.on('select', function(e) {
           break;
       case 'OnlinepairingList':
           actionOnlinepairingList();
+          break;
+      case 'Statistics':
+          actionStatistics();
           break;
       case '+NewTournament':
           Pebble.openURL('http://mtg-battle-log.herokuapp.com/tournaments/new');
@@ -187,7 +191,7 @@ function actionOnlinepairing(path, format) {
                 case '+NewRound':
                     Pebble.openURL('http://mtg-battle-log.herokuapp.com/tournaments/latest/rounds/new' +
                         '?no=' + data.round  +
-                        '&opponent_name=' + _title.split(':')[0] +
+                        '&opponent_name=' + findMatch(data, _title.split(':')[0]).opponent.name +
                         '&opponent_deck=' + _latest_deckname
                     );
                     break;
@@ -275,7 +279,38 @@ function actionOnlinepairing(path, format) {
     }
 }
 
+function actionStatistics() {
+    requestAPI('http://mtg-battle-log.herokuapp.com/statistics.json', function(data) {
+        Pebble.openURL('http://mtg-battle-log.herokuapp.com/statistics');
+        // var menu = new UI.Menu({
+        //         sections: [{
+        //             items: createItem(data)
+        //         }]
+        //     });
+        //
+        // menu.show();
+        //
+        // function createItem(data) {
+        //     return [
+        //         {
+        //             title: 'Statistics'
+        //         }
+        //     ];
+        // }
+    }, function(error, status) {
+        console.log(status);
+
+        if (status === 401) {
+            Pebble.openURL('http://mtg-battle-log.herokuapp.com/');
+        }
+    });
+}
+
 function fetchData(dataname, action, query) {
+    return requestAPI('https://mtg-deckdata.herokuapp.com/' + dataname, action, null, query);
+}
+
+function requestAPI(uri, action, fail, query) {
     if (is_request === true) {
         return false;
     }
@@ -289,17 +324,24 @@ function fetchData(dataname, action, query) {
 
     ajax(
         {
-            url: 'https://mtg-deckdata.herokuapp.com/' + dataname,
+            url: uri,
             type: 'json',
             data: query
         },
         function(data, status, request) {
             is_request = false;
-            action(data);
+            action(data, status, request);
         },
         function(error, status, request) {
             is_request = false;
-            console.log('The ajax request failed: ' + error);
+            console.log('The ajax request failed: ');
+            for (var e in error) {
+                console.log(e);
+            }
+
+            if (fail !== null) {
+                fail(error, status, request);
+            }
         }
     );
 
