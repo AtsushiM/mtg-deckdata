@@ -27,7 +27,6 @@
         C.$('#form').show();
     }
 
-
     function viewPairing(round, match) {
         var $view = C.$('#view'),
             pairingBase = C.$('#pairing-base').html(),

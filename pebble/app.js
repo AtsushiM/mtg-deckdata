@@ -189,7 +189,7 @@ function actionOnlinepairing(path, format) {
                     });
                     break;
                 case '+NewRound':
-                    Pebble.openURL('http://mtg-battle-log.herokuapp.com/tournaments/latest/rounds/new' +
+                    Pebble.openURL('http://mtg-battle-log.herokuapp.com/tournaments/latest/rounds/upsert' +
                         '?no=' + data.round  +
                         '&opponent_name=' + findMatch(data, _title.split(':')[0]).opponent.name +
                         '&opponent_deck=' + _latest_deckname
